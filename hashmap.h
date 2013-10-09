@@ -4,15 +4,15 @@
 /**
  * A hash function for hashing strings to integer values.
  */
-unsigned long hash(char *);
+unsigned int hash(const char *);
 
 /**
  * Definition for a basic item in the hash map. Also doubles as a linked list
  * node with a reference to the next item.
  */
 struct Item {
-    void *key;
-    void *value;
+    char *key;
+    char *value;
     struct Item *next;
 };
 
@@ -22,7 +22,7 @@ typedef struct Item Item;
  * Creates a new item with the given data attributes. Returns a pointer to the
  * new item, or NULL if the call fails.
  */
-Item *create_item(void *, void *, Item *);
+Item *create_item(const char *, const char *, Item *);
 
 /**
  * Destroys and frees all memory associated with the given item.
@@ -30,7 +30,7 @@ Item *create_item(void *, void *, Item *);
 void destroy_item(Item *);
 
 /**
- * A structure for a hash map for storing variable types of data. Collisions are
+ * A structure for a hash map for storing data as strings. Collisions are
  * handled by chaining the colliding items into a linked list. As this is a
  * simple hash map, there is no load balancing and no rehashing.
  */
@@ -49,22 +49,22 @@ typedef struct HashMap HashMap;
 HashMap *create_hashmap(int);
 
 /**
- * Hashes an item into the hash map. Returns zero on error and a positive
- * integer on success.
+ * Hashes an item into the hash map. Returns a nonnegative integer on success
+ * and -1 on an error.
  */
-int put(HashMap *, void *, void *);
+int put(HashMap *, const char *, const char *);
 
 /**
- * Gets the item in the hash map with the given key, or NULL if the item cannot
- * be found.
+ * Gets the value of the item in the hash map with the given key, or NULL if
+ * the item cannot be found.
  */
-void *get(HashMap *, void *);
+char *get(HashMap *, const char *);
 
 /**
- * Removes the item with the given key value from the hash map. Returns a
- * pointer to the deleted object, or NULL if it does not exist in the map.
+ * Removes the item with the given key value from the hash map. Returns the
+ * value of the deleted object, or NULL if it does not exist in the map.
  */
-void *remove(HashMap *, void *);
+char *removekey(HashMap *, const char *);
 
 /**
  * Frees all dynamic memory associated with the given hash map. Note that the
@@ -78,8 +78,9 @@ void destroy_hashmap(HashMap *);
  */
 struct Iterator {
     Item *ptr;
+    int capacity;
     int current;
-}
+};
 
 typedef struct Iterator Iterator;
 
