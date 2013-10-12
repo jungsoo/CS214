@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // Add some items to the hashmap.
+    // Add some nodes to the hashmap.
     put(hm, s1, s1);
     put(hm, s2, s2); 
     put(hm, s1, s1);

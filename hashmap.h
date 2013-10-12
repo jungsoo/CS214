@@ -7,35 +7,59 @@
 unsigned int hash(const char *);
 
 /**
- * Definition for a basic item in the hash map. Also doubles as a linked list
- * node with a reference to the next item.
+ * A basic type that stores indexer-related data. It also works as a linked
+ * list, chaining together records for the same keyword.
  */
-struct Item {
-    char *key;
-    char *value;
-    struct Item *next;
+struct Record {
+    char *filename;
+    int hits;
+    struct Record *next;
 };
 
-typedef struct Item Item;
+typedef struct Record Record;
 
 /**
- * Creates a new item with the given data attributes. Returns a pointer to the
- * new item, or NULL if the call fails.
+ * Creates a new record. Returns a pointer to the new object, or NULL if the
+ * call fails.
  */
-Item *create_item(const char *, const char *, Item *);
+Record *create_record(const char *, int, Record *);
 
 /**
- * Destroys and frees all memory associated with the given item.
+ * Destroys and frees all memory associated with the given record.
  */
-void destroy_item(Item *);
+void destroy_record(Record *);
+
+/**
+ * Definition for a basic node in the hash map. This implements a
+ * two-dimensional linked list, where the record field is another linked list of
+ * related records to this node.
+ */
+struct Node {
+    char *key;
+    struct Record *records;
+    struct Node *next;
+};
+
+typedef struct Node Node;
+
+/**
+ * Creates a new node with the given data attributes. Returns a pointer to the
+ * new node, or NULL if the call fails.
+ */
+Node *create_node(const char *, struct Record*, Node *);
+
+/**
+ * Destroys and frees all memory associated with the given node.
+ */
+void destroy_node(Node *);
 
 /**
  * A structure for a hash map for storing data as strings. Collisions are
- * handled by chaining the colliding items into a linked list. As this is a
+ * handled by chaining the colliding nodes into a linked list. As this is a
  * simple hash map, there is no load balancing and no rehashing.
  */
 struct HashMap {
-    Item *map;
+    Node *map;
     int capacity;
     int size;
 };
@@ -49,19 +73,20 @@ typedef struct HashMap HashMap;
 HashMap *create_hashmap(int);
 
 /**
- * Hashes an item into the hash map. Returns a nonnegative integer on success
- * and -1 on an error.
+ * Adds or updates another record for the given key. Returns a nonnegative
+ * integer on success and -1 if the call fails.
  */
-int put(HashMap *, const char *, const char *);
+int put_record(HashMap *, const char *, const char *);
 
 /**
- * Gets the value of the item in the hash map with the given key, or NULL if
- * the item cannot be found.
+ * Returns a pointer to the head of a linked list containing all of the records
+ * of files containing the given key. If the key does not exist in the hashmap,
+ * this function returns NULL.
  */
-char *get(HashMap *, const char *);
+Record *get_records(HashMap *, const char *);
 
 /**
- * Removes the item with the given key value from the hash map. Returns the
+ * Removes the node with the given key value from the hash map. Returns the
  * value of the deleted object, or NULL if it does not exist in the map.
  */
 char *removekey(HashMap *, const char *);
@@ -77,7 +102,7 @@ void destroy_hashmap(HashMap *);
  * Definition for a simple iterator for a hash map.
  */
 struct Iterator {
-    Item *ptr;
+    Node *ptr;
     int capacity;
     int current;
 };
@@ -91,10 +116,10 @@ typedef struct Iterator Iterator;
 Iterator *create_iterator(HashMap *);
 
 /**
- * Returns the next item in the iteration, or NULL if the end of the hash map
+ * Returns the next node in the iteration, or NULL if the end of the hash map
  * has been reached.
  */
-Item *next_item(Iterator *);
+Node *next_node(Iterator *);
 
 /**
  * Frees all memory associated with the given iterator.
