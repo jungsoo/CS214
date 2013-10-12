@@ -118,27 +118,41 @@ HashMap *create_hashmap(int capacity) {
 /**
  * Adds or updates another record for the given key. Returns a nonnegative
  * integer on success and -1 if the call fails.
- * @param key - The name of the token.
- * @param value - The filename where the token was found.
  */
-int put_record(HashMap *hashmap, const char *key, const char *value) {
-    // TODO edit this to take the records and 2x linked list into account
+int put_record(HashMap *hashmap, const char *token, const char *filename) {
     int index;
     Node *node;
+    Record *record;
 
     if (!hashmap) {
         return -1;
     }
 
     index = hash(key) % hashmap->capacity;
-    node = create_node(key, value, (hashmap->map) + index);
-    if (!node) {
-        return -1;
+    if (!(hashmap->map + index)) {
+        // TODO add a new node and check for malloc failure
+        record = create_record(filename, 1, NULL);
+        node = create_node(token, record, NULL);
+        hashmap->map + index = 
     }
-    else {
-        hashmap->size++;
-        return index;
-    }
+
+//    // TODO edit this to take the records and 2x linked list into account
+//    int index;
+//    Node *node;
+//
+//    if (!hashmap) {
+//        return -1;
+//    }
+//
+//    index = hash(key) % hashmap->capacity;
+//    node = create_node(key, value, (hashmap->map) + index);
+//    if (!node) {
+//        return -1;
+//    }
+//    else {
+//        hashmap->size++;
+//        return index;
+//    }
 }
 
 /**
