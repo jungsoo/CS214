@@ -9,13 +9,8 @@
 #define MAX_HEX_CHARS 2
 #define MAX_OCT_CHARS 3
 
-/*
- * Tokenizer type.  You need to fill in the type as part of your implementation.
- */
-
 struct TokenizerT_ {
 	char* copied_string;
-	char* delimiters;		
 	char* current_position;
 };
 
@@ -154,17 +149,13 @@ char* unescape_string(char* string) {
 }
 
 /*
- * TKCreate creates a new TokenizerT object for a given set of separator
- * characters (given as a string) and a token stream (given as a string).
- * 
- * TKCreate should copy the two arguments so that it is not dependent on
- * them staying immutable after returning.  (In the future, this may change
- * to increase efficiency.)
+ * TKCreate creates a new TokenizerT object for a token stream (given as a
+ * string).
  *
  * If the function succeeds, it returns a non-NULL TokenizerT.
  * Else it returns NULL.
  */
-TokenizerT *TKCreate(char *separators, char *ts) {
+TokenizerT *TKCreate(char *ts) {
 	
 	/*
 	 * Description: creates a new tokenizer struct from the token stream and delimiters
@@ -174,7 +165,7 @@ TokenizerT *TKCreate(char *separators, char *ts) {
 	 * 
 	 */
 	 
-	if(separators == NULL || ts == NULL){
+	if(ts == NULL){
 		return NULL;
 	}
 	
@@ -184,7 +175,6 @@ TokenizerT *TKCreate(char *separators, char *ts) {
 		return NULL;
 	}
 	
-	tokenizer->delimiters = unescape_string(separators);
 	tokenizer->copied_string = unescape_string(ts);
 	tokenizer->current_position = tokenizer->copied_string;
 	
@@ -204,27 +194,20 @@ void TKDestroy(TokenizerT *tk) {
 	 * Returns: nothing 
 	 */
 	 
-	free(tk->copied_string);
-	free(tk->delimiters);
-	free(tk);
+        if (tk) {
+            free(tk->copied_string);
+            free(tk);
+        }
 	
 	return;
 }
 
 /*
-* Description: determines if a particular character is a member of the set of delimiters
-* Parameters: character to be compared, string of delimiters
-* Modifies: Nothing
+* Description: determines if a particular character is a delimeter.
 * Returns: 1 if character is a delimiter, 0 if it is not
 */
-char is_delimiter(char character, char* delimiters) {
-	char* current = NULL;
-	for(current = delimiters; current - delimiters < strlen(delimiters); current++) {
-		if(character == *current) {
-			return 1;
-		}
-	}
-	return 0;
+char is_delimiter(char character) {
+    return !isalnum(character);
 }
 
 
@@ -250,7 +233,7 @@ char *TKGetNextToken(TokenizerT *tk) {
 	char* token_start = NULL;
 
 	while(tk->current_position - tk->copied_string < strlen(tk->copied_string)) {
-		if(!is_delimiter(*tk->current_position, tk->delimiters)) {
+		if(!is_delimiter(*tk->current_position)) {
 		
 			token_start = tk->current_position;
 			break;
@@ -263,7 +246,7 @@ char *TKGetNextToken(TokenizerT *tk) {
 	}
 	
 	while(tk->current_position - tk->copied_string < strlen(tk->copied_string)) {
-		if(is_delimiter(*tk->current_position, tk->delimiters)) {
+		if(is_delimiter(*tk->current_position)) {
 			break;
 		}
 		tk->current_position++;

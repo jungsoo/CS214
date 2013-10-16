@@ -1,53 +1,58 @@
+#include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "hashmap.c"
-
+#include <sys/types.h>
+#include "controller.c"
 
 /**
- * Indexes the file descriptor into the inverted index. Returns zero on error
- * and a positive number on success.
+ * Prints this program's usage to standard out.
  */
-int index(HashMap *hashmap, FILE *fd) {
-    // TODO
-    return 0;
+void show_usage(void) {
+    printf("Usage: index <index-filename> [<filename> | <dirname>]\n");
 }
 
 /**
- * Indexes a single file into the inverted index. Returns zero on error and a
- * positive number on success.
+ * Runs the program.
  */
-int index_file(HashMap* hashmap, FILE *file) {
-    // TODO
-    return 0;
-}
-
-/**
- * Dumps the inverted index to the specified target file. Returns zero on error
- * and a positive number on success.
- */
-int dump(HashMap *hashmap, FILE *target) {
-    // TODO
-    Iterator *iter = 
-    return 0;
-}
-
 int main(int argc, char **argv) {
-    // Strings to hash
-    char *s1 = "hello";
-    char *s2 = "goodbye";
-    printf("%s hashes to %u\n", s1, hash(s1));
-    printf("%s hashes to %u\n", s2, hash(s2));
+    FILE *indexfile, *targetfile;
+    DIR *targetdir;
+    Controller *controller;
 
-    // Create some data structures
-    HashMap *hm = create_hashmap(10);
-    if (!hm) {
-        fprintf(stderr, "Memory allocation for hashmap failed\n");
+    if (argc == 2 && strcmp(argv[1], "-h")) {
+        show_usage();
+        return 0;
+    }
+    else if (argc != 3) {
+        fprintf(stderr, "index: error: unexpected number of arguments.\n");
+        show_usage();
         return 1;
     }
 
-    // Add some nodes to the hashmap.
-    put(hm, s1, s1);
-    put(hm, s2, s2); 
-    put(hm, s1, s1);
+    indexfile = fopen(argv[1], "w");
+    if (!indexfile) {
+        fprintf(stderr, "index: error: Could not access index file %s\n",
+                    argv[1]);
+        return 1;
+    }
+
+    targetdir = opendir(argv[2]);
+    if (targetdir) {
+        // Index the directory
+        // TODO dirwalk
+    }
+    else {
+        // Not a directory
+        targetfile = fopen(argv[2], "r");
+        if (targetfile) {
+            // TODO index the file
+        }
+        else {
+            fprintf(stderr, "index: error: Could not access target file "
+                            "or directory\n%s", argv[2]);
+            return 1;
+        }
+    }
+
     return 0;
 }
