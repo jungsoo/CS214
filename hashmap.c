@@ -17,20 +17,34 @@ unsigned int hash(const char *str) {
 }
 
 /**
+ * Compares two records. Returns -1 if rec1 < rec2, 1 if rec1 > rec2, and 0 if
+ * rec1 = rec2.
+ */
+int reccmp(void *r1, void *r2) {
+    int result;
+    Record *rec1 = (Record *) r1;
+    Record *rec2 = (Record *) r2;
+
+    result = strcmp(rec1->token, rec2->token);
+    return result == 0 ? strcmp(rec1->filename, rec2->filename) : result;
+}
+
+/**
  * Creates a new record. Returns a pointer to the new object, or NULL if the
  * call fails.
  */
-Record *create_record(const char *filename, int hits, Record *next) {
+Record *create_record(const char *token, const char *filename, int hits) {
     Record *record = (Record *) malloc(sizeof(struct Record));
     if (record) {
-        record->key = (char *) malloc(strlen(filename));
-        if (!record->key) {
+        record->token = (char *) malloc(strlen(token) + 1);
+        record->filename = (char *) malloc(strlen(filename) + 1);
+        if (!record->token || !record->filename) {
             free(record);
         }
         else {
-            strcpy(record->key, filename);
+            strcpy(record->filename, filename);
+            strcpy(record->token, token);
             record->hits = hits;
-            record->next = next;
             return record;
         }
     }
@@ -43,48 +57,9 @@ Record *create_record(const char *filename, int hits, Record *next) {
  */
 void destroy_record(Record *record) {
     if (record) {
+        free(record->token);
         free(record->filename);
         free(record);
-    }
-}
-
-/**
- * Creates a new node with the given data attributes. Returns a pointer to the
- * new node, or NULL if the call fails.
- */
-Node *create_node(const char *key, struct Record **value, Node *next) {
-    Node *node = (Node *) malloc(sizeof(struct Node));
-    if (node) {
-        node->key = (char *) malloc(strlen(key));
-        if (!node->key) {
-            free(node);
-        }
-        else {
-            strcpy(node->key, key);
-            node->records = value;
-            node->next = next;
-            return node;
-        }
-    }
-
-    return NULL;
-}
-
-/**
- * Destroys and frees all memory associated with the given node. This also
- * destroys any and all records associated with it, even if pointers to these
- * records exist elsewhere.
- */
-void destroy_node(Node *node) {
-    Node *ptr, *next;
-    if (node) {
-        for (ptr = node->records; ptr; ) {
-            next = ptr->next;
-            destroy_record(ptr);
-            ptr = next;
-        }
-        free(node->key);
-        free(node);
     }
 }
 
@@ -100,18 +75,57 @@ HashMap *create_hashmap(int capacity) {
 
     HashMap *hm = (HashMap *) malloc(sizeof(struct HashMap));
     if (hm) {
-        hm->map = (Node *) calloc((size_t) capacity, sizeof(struct Node));
+        hm->map = (SortedList **) calloc(capacity, sizeof(SortedList *));
         if (!hm->map) {
             free(hm);
-            return NULL;
         }
         else {
             hm->capacity = capacity;
-            return hm;
         }
     }
-    else
-        return NULL;
+    return hm;
+}
+
+/*
+ * Inserts a record into the sorted list, maintaining sorted order.
+ */
+int insert_record(SortedList *list, const char *tok, const char *fname) {
+    Node *new, *next, *ptr;
+    Record *rec;
+
+    if (!list) {
+        // TODO create new list instead
+        return 0;
+    }
+
+    list->size++; // TODO
+    if (!list->head) {
+        // First item added to the list.
+        rec = create_record(token, filename, 0);
+        list->head = new;
+    }
+    else if (list->compare(newObj, list->head->data) >= 0) {
+        // Item belongs at the front of the list.
+        new->next = list->head;
+        list->head = new;
+    }
+    else {
+        Node *next = list->head->next;
+        Node *ptr = list->head;
+        for (; next; ptr = next, next = next->next) {
+            if (list->compare(newObj, next->data) >= 0) {
+                // We've found the right place to insert the node.
+                new->next = next;
+                ptr->next = new;
+                return TRUE;
+            }
+        }
+
+        // The item belongs at the end of the list.
+        ptr->next = new;
+    }
+
+    return TRUE;
 }
 
 /**
@@ -251,7 +265,7 @@ void destroy_hashmap(HashMap *hashmap) {
 // * Creates a new iterator for the hash map. Returns a pointer to the iterator,
 // * or NULL if the call fails.
 // */
-//Iterator *create_iterator(HashMap *hashmap) {
+//Iterator *create_hmiter(HashMap *hashmap) {
 //    if (!hashmap) {
 //        return NULL;
 //    }

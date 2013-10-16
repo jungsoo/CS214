@@ -72,7 +72,7 @@ int insert_sortedlist(SortedList *list, void *newObj) {
         return FALSE;
     }
 
-    Node *new = NodeCreate(newObj, NULL);
+    Node *new = create_node(newObj, NULL);
     if (!new) {
         return FALSE;
     }
@@ -116,7 +116,7 @@ int insert_sortedlist(SortedList *list, void *newObj) {
  * free memory. The item is safely removed from the list, but it is the
  * iterator's responsibility to free memory after it is done with it.
  */
-int SLRemove(SortedList *list, void *newObj) {
+int remove_sortedlist(SortedList *list, void *newObj) {
     Node *del;
     if (!list || !list->head) {
         return FALSE;
@@ -155,7 +155,7 @@ int SLRemove(SortedList *list, void *newObj) {
  * allocation succeeds, this function returns a pointer to a new iterator
  * object; otherwise, it returns NULL.
  */
-SortedListIterator *SLCreateIterator(SortedList *list) {
+SortedListIterator *create_sliter(SortedList *list) {
     if (!list) {
         return NULL;
     }
@@ -178,7 +178,7 @@ SortedListIterator *SLCreateIterator(SortedList *list) {
  * list node that was deleted by the list during iteration, the iterator will
  * free the node if it is the last one pointing to it.
  */
-void SLDestroyIterator(SortedListIterator *iter) {
+void destroy_sliter(SortedListIterator *iter) {
     if (!iter) {
         return;
     }

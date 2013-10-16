@@ -109,7 +109,7 @@ int remove_sortedlist(SortedList *, void *);
  *
  * You need to fill in this function as part of your implementation.
  */
-SortedListIterator *create_sortedlistiter(SortedList *);
+SortedListIterator *create_sliter(SortedList *);
 
 /*
  * SLDestroyIterator destroys an iterator object that was created using
@@ -119,7 +119,7 @@ SortedListIterator *create_sortedlistiter(SortedList *);
  *
  * You need to fill in this function as part of your implementation.
  */
-void destroy_sortedlistiter(SortedListIterator *);
+void destroy_sliter(SortedListIterator *);
 
 
 /*
