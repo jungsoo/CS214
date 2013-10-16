@@ -61,7 +61,6 @@ void destroy_node(Node *);
 struct HashMap {
     Node *map;
     int capacity;
-    int size;
 };
 
 typedef struct HashMap HashMap;

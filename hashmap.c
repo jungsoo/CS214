@@ -107,7 +107,6 @@ HashMap *create_hashmap(int capacity) {
         }
         else {
             hm->capacity = capacity;
-            hm->size = 0;
             return hm;
         }
     }
@@ -121,8 +120,8 @@ HashMap *create_hashmap(int capacity) {
  */
 int put_record(HashMap *hashmap, const char *token, const char *filename) {
     int index;
-    Node *node;
-    Record *record;
+    Node *node, *ptr;
+    Record *record, *rpt;
 
     if (!hashmap) {
         return -1;
@@ -130,29 +129,38 @@ int put_record(HashMap *hashmap, const char *token, const char *filename) {
 
     index = hash(key) % hashmap->capacity;
     if (!(hashmap->map + index)) {
-        // TODO add a new node and check for malloc failure
+        // Add a new node and record
         record = create_record(filename, 1, NULL);
         node = create_node(token, record, NULL);
-        hashmap->map + index = 
+        if (record && node) {
+            (hashmap->map + index) = node;
+            return index;
+        }
+    }
+    else {
+        // There's a linked list here; find the one matching the correct token
+        ptr = (hashmap->map + index);
+        for (; ptr && strcmp(ptr->key, token) != 0; ptr = ptr->next);
+        if (ptr) {
+            // Look for a record
+            rpt = ptr->records;
+            for(; rpt && strcmp(rpt->filename, filename) != 0; rpt = rpt->next);
+            if (rpt) {
+                // Update the record
+                rpt->hits++;
+            }
+            else {
+                // Create a new record
+                record = create_record(filename, 1, NULL);
+                if (record)
+            }
+        }
+        else {
+            // Create a new node for this token
+        }
     }
 
-//    // TODO edit this to take the records and 2x linked list into account
-//    int index;
-//    Node *node;
-//
-//    if (!hashmap) {
-//        return -1;
-//    }
-//
-//    index = hash(key) % hashmap->capacity;
-//    node = create_node(key, value, (hashmap->map) + index);
-//    if (!node) {
-//        return -1;
-//    }
-//    else {
-//        hashmap->size++;
-//        return index;
-//    }
+    return -1;
 }
 
 /**
@@ -202,7 +210,6 @@ char *removekey(HashMap *hashmap, const char *key) {
         // TODO LHS not working
         result = (hashmap->map + index)->value;
         (hashmap->map + index) = (hashmap->map + index)->next;
-        hashmap->size--;
     }
     else {
         // Walk the linked list
@@ -213,7 +220,6 @@ char *removekey(HashMap *hashmap, const char *key) {
                 result = next->value;
                 ptr->next = next->next;
                 destroy_node(next);
-                hashmap->size--;
                 break;
             }
         }
@@ -238,43 +244,43 @@ void destroy_hashmap(HashMap *hashmap) {
                 ptr = next;
             }
         }
-   }
-}
-
-/**
- * Creates a new iterator for the hash map. Returns a pointer to the iterator,
- * or NULL if the call fails.
- */
-Iterator *create_iterator(HashMap *hashmap) {
-    if (!hashmap) {
-        return NULL;
-    }
-
-    Iterator *iter = (Iterator *) malloc(sizeof(struct Iterator));
-    if (iter) {
-        iter->ptr = hashmap->map;
-        iter->capacity = hashmap->capacity;
-        iter->current = 0;
-        return iter;
-    }
-    else
-        return NULL;
-}
-
-/**
- * Returns the next node in the iteration, or NULL if the end of the hash map
- * has been reached.
- */
-Node *next_node(Iterator *iter) {
-    // TODO
-    Node *ptr;
-    if (!iter) {
-        return NULL;
-    }
-
-    while (iter->current < iter->capacity) {
-        while (iter->ptr == NULL) {
-
-        }
     }
 }
+
+///**
+// * Creates a new iterator for the hash map. Returns a pointer to the iterator,
+// * or NULL if the call fails.
+// */
+//Iterator *create_iterator(HashMap *hashmap) {
+//    if (!hashmap) {
+//        return NULL;
+//    }
+//
+//    Iterator *iter = (Iterator *) malloc(sizeof(struct Iterator));
+//    if (iter) {
+//        iter->ptr = hashmap->map;
+//        iter->capacity = hashmap->capacity;
+//        iter->current = 0;
+//        return iter;
+//    }
+//    else
+//        return NULL;
+//}
+//
+///**
+// * Returns the next node in the iteration, or NULL if the end of the hash map
+// * has been reached.
+// */
+//Node *next_node(Iterator *iter) {
+//    // TODO
+//    Node *ptr;
+//    if (!iter) {
+//        return NULL;
+//    }
+//
+//    while (iter->current < iter->capacity) {
+//        while (iter->ptr == NULL) {
+//
+//        }
+//    }
+//}

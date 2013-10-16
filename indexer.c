@@ -2,6 +2,35 @@
 #include <stdlib.h>
 #include "hashmap.c"
 
+
+/**
+ * Indexes the file descriptor into the inverted index. Returns zero on error
+ * and a positive number on success.
+ */
+int index(HashMap *hashmap, FILE *fd) {
+    // TODO
+    return 0;
+}
+
+/**
+ * Indexes a single file into the inverted index. Returns zero on error and a
+ * positive number on success.
+ */
+int index_file(HashMap* hashmap, FILE *file) {
+    // TODO
+    return 0;
+}
+
+/**
+ * Dumps the inverted index to the specified target file. Returns zero on error
+ * and a positive number on success.
+ */
+int dump(HashMap *hashmap, FILE *target) {
+    // TODO
+    Iterator *iter = 
+    return 0;
+}
+
 int main(int argc, char **argv) {
     // Strings to hash
     char *s1 = "hello";
