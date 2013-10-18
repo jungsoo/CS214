@@ -3,7 +3,7 @@
 
 AR = ar -cr
 CC = gcc
-CFLAGS = -Wall -g
+CFLAGS = -g
 
 all: index
 
@@ -17,7 +17,7 @@ controller.o: libutil controller.c controller.h
 	$(CC) $(CFLAGS) -static -Lutil -c controller.c
 
 inverted-index.o: libutil inverted-index.c inverted-index.h
-	$(CC) $(CFLAGS) -static Lutil -c inverted-index.c
+	$(CC) $(CFLAGS) -static -Lutil -c inverted-index.c
 
 libutil: record.o sorted-list.o tokenizer.o
 	$(AR) libutil.a record.o sorted-list.o tokenizer.o

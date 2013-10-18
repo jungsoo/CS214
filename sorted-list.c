@@ -31,7 +31,6 @@ SortedList *create_sortedlist(CompFunc cf) {
     if (list) {
         list->head = NULL;
         list->compare = cf;
-        list->size = 0;
         return list;
     }
     else
@@ -62,10 +61,12 @@ void destroy_sortedlist(SortedList *list) {
  * function returns 1. If the insertion fails, or if the list pointer is NULL,
  * then it returns 0.
  */
-int insert_sortedlist(SortedList *list, char *token, char *filename) {
+int insert_sortedlist(SortedList *list, const char *token, const char *filename) {
     Node *new, *ptr, *prev;
     Record *record;
     int c, retval;
+
+    // TODO 86 'record' uninitialized. just make it now
 
     if (!list) {
         retval = 0;
@@ -76,7 +77,6 @@ int insert_sortedlist(SortedList *list, char *token, char *filename) {
         new = create_node(record, NULL);
         if (record && new) {
             list->head = new;
-            list->size++;
             retval = 1;
         }
         else {
@@ -92,7 +92,6 @@ int insert_sortedlist(SortedList *list, char *token, char *filename) {
             new = create_node(record, list->head);
             if (record && new) {
                 list->head = new;
-                list->size++;
                 retval = 1;
             }
             else {
@@ -124,12 +123,11 @@ int insert_sortedlist(SortedList *list, char *token, char *filename) {
                 new = create_node(record, ptr);
                 if (record && new) {
                     prev->next = new;
-                    list->size++;
                     return 1;
                 }
                 else {
                     free(record);
-                    free(node);
+                    free(new);
                     return 0;
                 }
             }
@@ -140,12 +138,11 @@ int insert_sortedlist(SortedList *list, char *token, char *filename) {
         new = create_node(record, NULL);
         if (record && new) {
             prev->next = new;
-            list->size++;
             retval = 1;
         }
         else {
             free(record);
-            free(node);
+            free(new);
             retval = 0;
         }
     }
@@ -158,7 +155,7 @@ int insert_sortedlist(SortedList *list, char *token, char *filename) {
  * allocation succeeds, this function returns a pointer to a new iterator
  * object; otherwise, it returns NULL.
  */
-SortedListIterator *create_sliter(SortedList *list) {
+SortedListIterator *create_iter(SortedList *list) {
     if (!list) {
         return NULL;
     }
@@ -167,9 +164,6 @@ SortedListIterator *create_sliter(SortedList *list) {
         (SortedListIterator *) malloc(sizeof(struct SortedListIterator));
     if (iterator) {
         iterator->ptr = list->head;
-        if (iterator->ptr) {
-            iterator->ptr->references++;
-        }
         return iterator;
     }
     else
@@ -181,14 +175,9 @@ SortedListIterator *create_sliter(SortedList *list) {
  * list node that was deleted by the list during iteration, the iterator will
  * free the node if it is the last one pointing to it.
  */
-void destroy_sliter(SortedListIterator *iter) {
+void destroy_iter(SortedListIterator *iter) {
     if (!iter) {
         return;
-    }
-
-    Node *ptr = iter->ptr;
-    if (ptr && --ptr->references <= 0) {
-        free(ptr);
     }
 
     free(iter);

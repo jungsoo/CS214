@@ -1,8 +1,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#include "hashmap.h"
-#include "tokenizer.h"
+#include "inverted-index.h"
 #include <dirent.h>
 #include <stdio.h>
 #include <sys/types.h>
@@ -12,7 +11,6 @@
  * model changes without affecting the front end.
  */
 struct Controller {
-    // TODO
     Index *index;
 };
 
@@ -32,12 +30,12 @@ void destroy_controller(Controller *);
 /**
  * Indexes a single file into the inverted index.
  */
-int index_file(Controller *, char*);
+int index_file(Controller *, const char*);
 
 /**
  * Recursively indexes all files in the directory into the inverted index.
  */
-int index_dir(Controller *, char *);
+int index_dir(Controller *, const char *);
 
 /**
  * Dumps the contents of the inverted index into the target file.

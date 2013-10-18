@@ -31,10 +31,30 @@ Node *create_node(Record *, struct Node *);
 struct SortedList {
     Node *head;
     CompFunc compare;
-    int size;
 };
 
 typedef struct SortedList SortedList;
+
+/*
+ * Creates a new sorted list of size zero. Returns a new sorted list object on
+ * success; on failure, this function returns NULL.
+ */
+SortedList *create_sortedlist(CompFunc);
+
+/*
+ * Destroys the list pointed to by the given list pointer. Since the list is
+ * implemented as a linked list, this method walks the list and frees all of
+ * the dynamically allocated list nodes along the way.
+ */
+void destroy_sortedlist(SortedList *);
+
+/*
+ * Inserts an object into the list, maintaining the invariant that each item is
+ * less than or equal to the one after it. If the insertion is successful, the
+ * function returns 1. If the insertion fails, or if the list pointer is NULL,
+ * then it returns 0.
+ */
+int insert_sortedlist(SortedList *, const char *, const char *);
 
 /*
  * Iterator type for user to "walk" through the list item by item, from
@@ -47,43 +67,18 @@ struct SortedListIterator {
 typedef struct SortedListIterator SortedListIterator;
 
 /*
- * Creates a new, empty sorted list.  The caller must provide a comparator
- * function that can be used to order objects that will be kept in the list.
- * 
- * If the function succeeds, it returns a (non-NULL) SortedList object.
- * Else, it returns NULL.
- */
-SortedList *create_sortedlist(CompFunc);
-
-/*
- * Destroys a list, freeing all dynamically allocated memory.
- */
-void destroy_sortedlist(SortedList *);
-
-
-/*
- * Inserts a given object into a sorted list, maintaining sorted
- * order of all objects in the list.  If the new object is equal to a subset
- * of existing objects in the list, then the subset can be kept in any
- * order.
- *
- * If the function succeeds, it returns 1.  Else, it returns 0.
- */
-int insert_sortedlist(SortedList *, char *, char *);
-
-/*
  * Creates an iterator object that will allow the caller to "walk" through the
  * list from beginning to the end.
  *
  * If the function succeeds, it returns a non-NULL SortedListIterT object.
  * Else, it returns NULL.
  */
-SortedListIterator *create_sliter(SortedList *);
+SortedListIterator *create_iter(SortedList *);
 
 /*
  * Destroys an iterator object.
  */
-void destroy_sliter(SortedListIterator *);
+void destroy_iter(SortedListIterator *);
 
 /*
  * Returns the next object in the iteration, or NULL if the end of the iteration

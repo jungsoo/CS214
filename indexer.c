@@ -15,9 +15,10 @@ void show_usage(void) {
  * Runs the program.
  */
 int main(int argc, char **argv) {
-    FILE *indexfile, *targetfile;
-    DIR *targetdir;
     Controller *controller;
+    DIR *targetdir;
+    FILE *indexfile, *targetfile;
+    int result;
 
     // Check for proper input
     if (argc == 2 && strcmp(argv[1], "-h")) {
@@ -51,7 +52,7 @@ int main(int argc, char **argv) {
         index_file(controller, argv[2]);
     }
     else if (is_directory(argv[2])) {
-        index_dir(argv[2]);
+        index_dir(controller, argv[2]);
     }
     else {
         fprintf(stderr,
@@ -61,5 +62,7 @@ int main(int argc, char **argv) {
     }
 
     // Finally, dump the inverted index to file
-    return dump(controller, indexfile);
+    result = dump(controller, indexfile);
+    destroy_controller(controller);
+    return result;
 }

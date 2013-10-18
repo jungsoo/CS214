@@ -1,36 +1,29 @@
-#include "hashmap.c"
+#include "controller.h"
+#include "inverted-index.c"
 #include "record.c"
+#include "sorted-list.c"
 #include "tokenizer.c"
 #include <dirent.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 
-#define MAXBUFSIZE 10240
-#define TRUE 1
-#define FALSE 0
-
 /**
  * Creates a new controller. Returns a pointer to the new struct, or NULL if the
  * call fails.
  */
 Controller *create_controller() {
-    Controller *controller;
-    HashMap *hashmap;
-
-    controller = (Controller *) malloc(sizeof(struct Controller));
+    Controller *controller = (Controller *) malloc(sizeof(struct Controller));
     if (controller) {
-        hashmap = create_hashmap(100);
-        if (hashmap) {
-            controller->hashmap = hashmap;
+        controller->index = create_index();
+        if (controller->index) {
+            return controller;
         }
-        else {
+        else
             free(controller);
-            return NULL;
-        }
     }
-    else
-        return NULL;
+
+    return NULL;
 }
 
 /**
@@ -38,7 +31,7 @@ Controller *create_controller() {
  */
 void destroy_controller(Controller *controller) {
     if (controller) {
-        destroy_hashmap(controller->hashmap);
+        destroy_index(controller->index);
         free(controller);
     }
 }
@@ -81,18 +74,20 @@ int index_file(Controller *controller, const char *filename) {
     if (tokenizer) {
         while ((token = TKGetNextToken(tokenizer)) != NULL) {
             strtolower(token);
-            // TODO add to index
+            put_record(controller->index, token, filename);
         }
+        TKDestroy(tokenizer);
+        return 1;
     }
-    TKDestroy(tokenizer);
-    return 0;
+    else
+        return 0;
 }
 
 /**
  * Recursively indexes all files in the directory into the inverted index.
  * Returns zero on failure and a positive number on success.
  */
-int index_dir(Controller *controller, char *dirname) {
+int index_dir(Controller *controller, const char *dirname) {
     DIR *dir;
     FILE *file;
     struct dirent *dent;
@@ -103,9 +98,9 @@ int index_dir(Controller *controller, char *dirname) {
     }
 
     while ((dent = readdir(dir))) {
-        size_t size = strlen(dent->dname) + strlen(dirname);
+        size_t size = strlen(dent->d_name) + strlen(dirname);
         char *name = calloc(size, sizeof(char));
-        snprintf(name, size, "%s/%s", dirname, dent->dname);
+        snprintf(name, size, "%s/%s", dirname, dent->d_name);
 
         if (strncmp(dent->d_name, ".", sizeof(char)) == 0) {
             // Hidden file
@@ -132,21 +127,46 @@ int index_dir(Controller *controller, char *dirname) {
  * on error and a positive number on success.
  */
 int dump(Controller *controller, FILE *target) {
-    // TODO
-    char *buffer, *token;
+    // TODO gdb
     Record *record;
+    SortedList *list;
+    SortedListIterator *iterator;
+    char *token;
+    int i, first;
 
-    buffer = (char *) calloc(MAXBUFSIZE, sizeof(char));
-    if (!buffer) {
-        return 0;
+    first = 1;
+
+    // Loop through each list
+    for (i = 0; i < 36; i++) {
+        token = NULL;
+        list = controller->index->lists[i];
+        if (!list) {
+            continue;
+        }
+
+        // Loop through each node in the list
+        // TODO check for correctness before debugging
+        iterator = create_iter(list);
+        while ((record = next_item(iterator)) != NULL) {
+            if (token == NULL || strcmp(record->token, token) != 0) {
+                // Moving on to the next token
+                if (!first) {
+                    fprintf(target, "\n</list>\n");
+                }
+
+                first = 0;
+                token = record->token;
+                fprintf(target, "<list> %s\n%s %d", token,
+                        record->filename, record->hits);
+            }
+            else {
+                // Continuing with the current token
+                fprintf(target, " %s %d", record->filename, record->hits);
+            }
+        }
+        destroy_iter(iterator);
     }
 
-    // TODO work out the Record details, etc.
-    while (token) {
-    while ((record = next_record())) {
-        
-    }
-    }
     return 1;
 }
 
