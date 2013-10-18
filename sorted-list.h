@@ -1,9 +1,3 @@
-/*
- * sorted-list.h
- * Structures and prototypes for the sorted list. The only addition to the base
- * code is a struct definition for a linked list node and some other helper
- * functions.
- */
 #ifndef SORTED_LIST_H
 #define SORTED_LIST_H
 
@@ -11,13 +5,7 @@
 #include <stdlib.h>
 
 /*
- * When your sorted list is used to store objects of some type, since the
- * type is opaque to you, you will need a comparator function to order
- * the objects in your sorted list.
- *
- * You can expect a comparator function to return -1 if the 1st object is
- * smaller, 0 if the two objects are equal, and 1 if the 2nd object is
- * smaller.
+ * Standard comparison function for two records.
  */
 typedef int (*CompFunc)(Record *, Record *);
 
@@ -62,76 +50,44 @@ typedef struct SortedListIterator SortedListIterator;
  * Creates a new, empty sorted list.  The caller must provide a comparator
  * function that can be used to order objects that will be kept in the list.
  * 
- * If the function succeeds, it returns a (non-NULL) SortedListT object.
+ * If the function succeeds, it returns a (non-NULL) SortedList object.
  * Else, it returns NULL.
  */
 SortedList *create_sortedlist(CompFunc);
 
 /*
- * SLDestroy destroys a list, freeing all dynamically allocated memory.
- *
- * You need to fill in this function as part of your implementation.
+ * Destroys a list, freeing all dynamically allocated memory.
  */
 void destroy_sortedlist(SortedList *);
 
 
 /*
- * SLInsert inserts a given object into a sorted list, maintaining sorted
+ * Inserts a given object into a sorted list, maintaining sorted
  * order of all objects in the list.  If the new object is equal to a subset
  * of existing objects in the list, then the subset can be kept in any
  * order.
  *
  * If the function succeeds, it returns 1.  Else, it returns 0.
- *
- * You need to fill in this function as part of your implementation.
  */
-int insert_sortedlist(SortedList *, Record *);
+int insert_sortedlist(SortedList *, char *, char *);
 
 /*
- * SLRemove removes a given object from a sorted list.  Sorted ordering
- * should be maintained.
- *
- * If the function succeeds, it returns 1.  Else, it returns 0.
- *
- * You need to fill in this function as part of your implementation.
- */
-int remove_sortedlist(SortedList *, Record *);
-
-/*
- * SLCreateIterator creates an iterator object that will allow the caller
- * to "walk" through the list from beginning to the end using SLNextItem.
+ * Creates an iterator object that will allow the caller to "walk" through the
+ * list from beginning to the end.
  *
  * If the function succeeds, it returns a non-NULL SortedListIterT object.
  * Else, it returns NULL.
- *
- * You need to fill in this function as part of your implementation.
  */
 SortedListIterator *create_sliter(SortedList *);
 
 /*
- * SLDestroyIterator destroys an iterator object that was created using
- * SLCreateIterator().  Note that this function should destroy the
- * iterator but should NOT affectt the original list used to create
- * the iterator in any way.
- *
- * You need to fill in this function as part of your implementation.
+ * Destroys an iterator object.
  */
 void destroy_sliter(SortedListIterator *);
 
-
 /*
- * SLNextItem returns the next object in the list encapsulated by the
- * given iterator.  It should return a NULL when the end of the list
+ * Returns the next object in the iteration, or NULL if the end of the iteration
  * has been reached.
- *
- * One complication you MUST consider/address is what happens if a
- * sorted list encapsulated within an iterator is modified while that
- * iterator is active.  For example, what if an iterator is "pointing"
- * to some object in the list as the next one to be returned but that
- * object is removed from the list using SLRemove() before SLNextItem()
- * is called.
- *
- * You need to fill in this function as part of your implementation.
  */
 Record *next_item(SortedListIterator *);
 

@@ -1,48 +1,36 @@
+#include "index.h"
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include "hashmap.h"
 
 /**
- * The djb2 hash algorithm for hashing strings.
+ * A custom hash function that returns an index based on a string's first
+ * letter. Returns a valid index for the inverted index, or -1 if the string
+ * starts with an inappropriate character (something non-alphanumeric).
  */
-unsigned int hash(const char *str) {
-    unsigned int hash = 5381;
-    int c;
-
-    while ((c = *str++)) {
-        hash = ((hash << 5) + hash) + c;
+int hash(const char *str) {
+    if isalpha(str[0]) {
+        return (int) (tolower(str[0]) - 'a');
     }
-
-    return hash;
+    else if (isdigit(str[0])) {
+        return (int) str[0] + 26;
+    }
+    else
+        return -1;
 }
 
 /**
- * Creates a new hash map with the given capacity. Returns a pointer to the new
- * hash map, or NULL if memory allocation failed. Specifying a capacity less
- * than one will also cause this method to do nothing and return NULL.
+ * Returns a pointer to a new inverted index, or NULL if the call fails.
  */
-HashMap *create_hashmap(int capacity) {
-    if (capacity < 1) {
-        return NULL;
-    }
-
-    HashMap *hm = (HashMap *) malloc(sizeof(struct HashMap));
-    if (hm) {
-        hm->map = (SortedList **) calloc(capacity, sizeof(SortedList *));
-        if (!hm->map) {
-            free(hm);
-        }
-        else {
-            hm->capacity = capacity;
-        }
-    }
-    return hm;
+Index *create_index() {
+    return (Index *) malloc(sizeof(struct Index));
 }
 
-/*
- * Inserts a record into the sorted list, maintaining sorted order.
+/**
+ * Adds or updates another record for the given token.
  */
-int insert_record(SortedList *list, const char *tok, const char *fname) {
+int put_record(const char *tok, const char *fname) {
+    SortedList *list;
     Node *new, *next, *ptr;
     Record *rec;
 
@@ -85,28 +73,28 @@ int insert_record(SortedList *list, const char *tok, const char *fname) {
  * Adds or updates another record for the given key. Returns a nonnegative
  * integer on success and -1 if the call fails.
  */
-int put_record(HashMap *hashmap, const char *token, const char *filename) {
+int put_record(Index *Index, const char *token, const char *filename) {
     int index;
     Node *node, *ptr;
     Record *record, *rpt;
 
-    if (!hashmap) {
+    if (!index) {
         return -1;
     }
 
-    index = hash(key) % hashmap->capacity;
-    if (!(hashmap->map + index)) {
+    index = hash(key) % index->capacity;
+    if (!(index->map + index)) {
         // Add a new node and record
         record = create_record(filename, 1, NULL);
         node = create_node(token, record, NULL);
         if (record && node) {
-            (hashmap->map + index) = node;
+            (index->map + index) = node;
             return index;
         }
     }
     else {
         // There's a linked list here; find the one matching the correct token
-        ptr = (hashmap->map + index);
+        ptr = (index->map + index);
         for (; ptr && strcmp(ptr->key, token) != 0; ptr = ptr->next);
         if (ptr) {
             // Look for a record
@@ -132,20 +120,20 @@ int put_record(HashMap *hashmap, const char *token, const char *filename) {
 
 /**
  * Returns a pointer to the head of a linked list containing all of the records
- * of files containing the given key. If the key does not exist in the hashmap,
+ * of files containing the given key. If the key does not exist in the index,
  * this function returns NULL.
  */
-Record *get_records(HashMap *hashmap, const char *key) {
+Record *get_records(Index *index, const char *key) {
     // TODO gdb
     int index;
     Node *ptr;
 
-    if (!hashmap) {
+    if (!index) {
         return NULL;
     }
 
-    index = hash(key) % hashmap->capacity;
-    for (ptr = (hashmap->map) + index; ptr; ptr = ptr->next) {
+    index = hash(key) % index->capacity;
+    for (ptr = (index->map) + index; ptr; ptr = ptr->next) {
         if (strcmp(key, ptr->key) == 0) {
             return ptr->value;
         }
@@ -158,30 +146,30 @@ Record *get_records(HashMap *hashmap, const char *key) {
  * Removes the node with the given key value from the hash map. Returns the
  * value of the deleted object, or NULL if it does not exist in the map.
  */
-char *removekey(HashMap *hashmap, const char *key) {
+char *removekey(Index *index, const char *key) {
     // TODO gdb
     int index;
     char* result = NULL;
     Node *ptr, *next;
 
-    if (!hashmap) {
+    if (!index) {
         return NULL;
     }
 
-    index = hash(key) % hashmap->capacity;
-    if ((hashmap->map) + index == NULL) {
+    index = hash(key) % index->capacity;
+    if ((index->map) + index == NULL) {
         return NULL;
     }
-    else if (strcmp((hashmap->map + index)->key, key) == 0) {
+    else if (strcmp((index->map + index)->key, key) == 0) {
         // Matches the first in the linked list
         // TODO LHS not working
-        result = (hashmap->map + index)->value;
-        (hashmap->map + index) = (hashmap->map + index)->next;
+        result = (index->map + index)->value;
+        (index->map + index) = (index->map + index)->next;
     }
     else {
         // Walk the linked list
-        next = (hashmap->map + index)->next;
-        ptr = (hashmap->map + index);
+        next = (index->map + index)->next;
+        ptr = (index->map + index);
         for (; next; next = next->next) {
             if (strcmp(key, next->key) == 0) {
                 result = next->value;
@@ -196,16 +184,16 @@ char *removekey(HashMap *hashmap, const char *key) {
 
 /**
  * Frees all dynamic memory associated with the given hash map. Note that the
- * use of all iterators associated with the hashmap after its destruction is
+ * use of all iterators associated with the index after its destruction is
  * extremely unsafe.
  */
-void destroy_hashmap(HashMap *hashmap) {
+void destroy_index(Index *Index) {
     // TODO gdb
     int i;
     Node *ptr, *next;
-    if (hashmap) {
-        for (i = 0; i < hashmap->capacity; i++) {
-            for (ptr = (hashmap->map + i); ptr; ) {
+    if (index) {
+        for (i = 0; i < index->capacity; i++) {
+            for (ptr = (index->map + i); ptr; ) {
                 next = ptr->next;
                 destroy_node(ptr);
                 ptr = next;
@@ -218,15 +206,15 @@ void destroy_hashmap(HashMap *hashmap) {
 // * Creates a new iterator for the hash map. Returns a pointer to the iterator,
 // * or NULL if the call fails.
 // */
-//Iterator *create_hmiter(HashMap *hashmap) {
-//    if (!hashmap) {
+//Iterator *create_hmiter(index *index) {
+//    if (!index) {
 //        return NULL;
 //    }
 //
 //    Iterator *iter = (Iterator *) malloc(sizeof(struct Iterator));
 //    if (iter) {
-//        iter->ptr = hashmap->map;
-//        iter->capacity = hashmap->capacity;
+//        iter->ptr = index->map;
+//        iter->capacity = index->capacity;
 //        iter->current = 0;
 //        return iter;
 //    }

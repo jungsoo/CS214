@@ -1,8 +1,8 @@
+#include "controller.c"
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include "controller.c"
 
 /**
  * Prints this program's usage to standard out.
@@ -19,6 +19,7 @@ int main(int argc, char **argv) {
     DIR *targetdir;
     Controller *controller;
 
+    // Check for proper input
     if (argc == 2 && strcmp(argv[1], "-h")) {
         show_usage();
         return 0;
@@ -29,30 +30,36 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    indexfile = fopen(argv[1], "w");
-    if (!indexfile) {
-        fprintf(stderr, "index: error: Could not access index file %s\n",
-                    argv[1]);
+    // Create the controller
+    controller = create_controller();
+    if (!controller) {
+        fprintf(stderr, "An error occurred while allocating memory.\n");
         return 1;
     }
 
-    targetdir = opendir(argv[2]);
-    if (targetdir) {
-        // Index the directory
-        // TODO dirwalk
-    }
-    else {
-        // Not a directory
-        targetfile = fopen(argv[2], "r");
-        if (targetfile) {
-            // TODO index the file
-        }
-        else {
-            fprintf(stderr, "index: error: Could not access target file "
-                            "or directory\n%s", argv[2]);
-            return 1;
-        }
+    // Open the index file for writing
+    indexfile = fopen(argv[1], "w");
+    if (!indexfile) {
+        fprintf(stderr,
+                "index: error: Failed to open index file '%s' for writing\n",
+                argv[1]);
+        return 1;
     }
 
-    return 0;
+    // Next, perform the indexing
+    if (is_file(argv[2])) {
+        index_file(controller, argv[2]);
+    }
+    else if (is_directory(argv[2])) {
+        index_dir(argv[2]);
+    }
+    else {
+        fprintf(stderr,
+                "index: error: '%s' is not a regular file or directory\n",
+                argv[2]);
+        return 1;
+    }
+
+    // Finally, dump the inverted index to file
+    return dump(controller, indexfile);
 }

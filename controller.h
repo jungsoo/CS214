@@ -12,7 +12,8 @@
  * model changes without affecting the front end.
  */
 struct Controller {
-    HashMap *hashmap;
+    // TODO
+    Index *index;
 };
 
 typedef struct Controller Controller;
@@ -31,12 +32,12 @@ void destroy_controller(Controller *);
 /**
  * Indexes a single file into the inverted index.
  */
-int index_file(Controller *, FILE *);
+int index_file(Controller *, char*);
 
 /**
  * Recursively indexes all files in the directory into the inverted index.
  */
-int index_dir(Controller *, DIR *);
+int index_dir(Controller *, char *);
 
 /**
  * Dumps the contents of the inverted index into the target file.

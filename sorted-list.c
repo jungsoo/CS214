@@ -1,9 +1,3 @@
-/*
- * sorted-list.c
- * An implementation of a sorted list using linked lists.
- * Kyle Suarez
- */
-
 #include "record.h"
 #include "sorted-list.h"
 #include <stdio.h>
@@ -64,110 +58,99 @@ void destroy_sortedlist(SortedList *list) {
 
 /*
  * Inserts an object into the list, maintaining the invariant that each item is
- * greater than or equal to the one after it. If the insertion is successful,
- * the function returns 1. If the insertion fails, or if the list pointer is
- * NULL, then it returns 0.
+ * less than or equal to the one after it. If the insertion is successful, the
+ * function returns 1. If the insertion fails, or if the list pointer is NULL,
+ * then it returns 0.
  */
-int insert_sortedlist(SortedList *list, Record *newRec) {
-    int c;
+int insert_sortedlist(SortedList *list, char *token, char *filename) {
     Node *new, *ptr, *prev;
+    Record *record;
+    int c, retval;
 
     if (!list) {
-        return FALSE;
+        retval = 0;
     }
-
-    new = create_node(newRec, NULL);
-    if (!new) {
-        return FALSE;
-    }
-
-    if (!list->head) {
-        // First item added to the list.
-        new = create_node(newRec, NULL); // TODO check
-        if (new) {
+    else if (!list->head) {
+        // First item added to the list. Create a new node
+        record = create_record(token, filename, 1);
+        new = create_node(record, NULL);
+        if (record && new) {
             list->head = new;
             list->size++;
+            retval = 1;
+        }
+        else {
+            free(record);
+            free(new);
+            retval = 0;
         }
     }
-    else if ((c = list->compare(newRec, list->head->data)) <= 0) {
+    else if ((c = list->compare(record, list->head->data)) <= 0) {
         if (c < 0) {
             // Belongs at the head of the list
-            new = create_node(newRec, list->head); // TODO check
-            if (new) {
+            record = create_record(token, filename, 1);
+            new = create_node(record, list->head);
+            if (record && new) {
                 list->head = new;
                 list->size++;
+                retval = 1;
+            }
+            else {
+                free(record);
+                free(new);
+                retval = 0;
             }
         }
         else {
-            // Match - update record
-            list->head->data->hits += newRec->hits;
-            free(newRec); // TODO maybe change
+            // Match - update record!
+            list->head->data->hits++;
+            retval = 1;
         }
     }
     else {
         // Find a match or a place to insert
-        // TODO
         ptr = list->head;
         prev = NULL;
         for (; ptr; prev = ptr, ptr = ptr->next) {
-            c = list->compare(newRec, ptr->data);
-            if (c <= 0) {
-                // We've found the right place to insert the node.
-                new->ptr = ptr;
-                prev->ptr = new;
-                return TRUE;
+            c = list->compare(record, ptr->data);
+            if (c == 0) {
+                // Update this node and we're done.
+                ptr->data->hits++;
+                return 1;
+            }
+            else if (c < 0) {
+                // Node should be inserted in here.
+                record = create_record(token, filename, 1);
+                new = create_node(record, ptr);
+                if (record && new) {
+                    prev->next = new;
+                    list->size++;
+                    return 1;
+                }
+                else {
+                    free(record);
+                    free(node);
+                    return 0;
+                }
             }
         }
 
         // The item belongs at the end of the list.
-        prev->ptr = new;
-    }
-
-    return FALSE;
-}
-
-/*
- * Deletes the given object from the list, maintaining sorted order. If the
- * deletion succeeds, this function returns 1; otherwise it returns 0 (for
- * instance, when the item was not found in the list). If list is a null
- * pointer, nothing happens and the function returns 0.
- *
- * If an iterator is pointing to the object to be deleted, this method will not
- * free memory. The item is safely removed from the list, but it is the
- * iterator's responsibility to free memory after it is done with it.
- */
-int remove_sortedlist(SortedList *list, Record *newObj) {
-    Node *del;
-    if (!list || !list->head) {
-        return FALSE;
-    }
-    else if (list->compare(newObj, list->head->data) == 0) {
-        // Delete the head.
-        del = list->head;
-        list->head = list->head->next;
-        list->size--;
-        if (--del->references <= 0) {
-            free(del);
+        record = create_record(token, filename, 1);
+        new = create_node(record, NULL);
+        if (record && new) {
+            prev->next = new;
+            list->size++;
+            retval = 1;
         }
-        return TRUE;
-    }
-    else {
-        Node *next = list->head->next;
-        Node *ptr = list->head;
-        for (; next; ptr = next, next = next->next) {
-            if (list->compare(newObj, next->data) == 0) {
-                del = next;
-                ptr->next = next->next;
-                if (--del->references <= 0) {
-                    free(del);
-                }
-                return TRUE;
-            }
+        else {
+            free(record);
+            free(node);
+            retval = 0;
         }
-
-        // Item not found.
-        return FALSE;
     }
+
+    return retval;
 }
 
 /*
