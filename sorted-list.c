@@ -4,9 +4,10 @@
  * Kyle Suarez
  */
 
+#include "record.h"
+#include "sorted-list.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "sorted-list.h"
 
 #define TRUE 1
 #define FALSE 0
@@ -15,7 +16,7 @@
  * Creates a new node with the given data. If the function succeeds, it returns
  * a pointer to the new node; if memory allocation fails, it returns NULL.
  */
-Node *create_node(void *data, Node *next) {
+Node *create_node(Record *data, Node *next) {
     Node *node = (Node *) malloc(sizeof(struct Node));
     if (node) {
         node->data = data;
@@ -67,43 +68,62 @@ void destroy_sortedlist(SortedList *list) {
  * the function returns 1. If the insertion fails, or if the list pointer is
  * NULL, then it returns 0.
  */
-int insert_sortedlist(SortedList *list, void *newObj) {
+int insert_sortedlist(SortedList *list, Record *newRec) {
+    int c;
+    Node *new, *ptr, *prev;
+
     if (!list) {
         return FALSE;
     }
 
-    Node *new = create_node(newObj, NULL);
+    new = create_node(newRec, NULL);
     if (!new) {
         return FALSE;
     }
 
-    list->size++;
     if (!list->head) {
         // First item added to the list.
-        list->head = new;
+        new = create_node(newRec, NULL); // TODO check
+        if (new) {
+            list->head = new;
+            list->size++;
+        }
     }
-    else if (list->compare(newObj, list->head->data) >= 0) {
-        // Item belongs at the front of the list.
-        new->next = list->head;
-        list->head = new;
+    else if ((c = list->compare(newRec, list->head->data)) <= 0) {
+        if (c < 0) {
+            // Belongs at the head of the list
+            new = create_node(newRec, list->head); // TODO check
+            if (new) {
+                list->head = new;
+                list->size++;
+            }
+        }
+        else {
+            // Match - update record
+            list->head->data->hits += newRec->hits;
+            free(newRec); // TODO maybe change
+        }
     }
     else {
-        Node *next = list->head->next;
-        Node *ptr = list->head;
-        for (; next; ptr = next, next = next->next) {
-            if (list->compare(newObj, next->data) >= 0) {
+        // Find a match or a place to insert
+        // TODO
+        ptr = list->head;
+        prev = NULL;
+        for (; ptr; prev = ptr, ptr = ptr->next) {
+            c = list->compare(newRec, ptr->data);
+            if (c <= 0) {
                 // We've found the right place to insert the node.
-                new->next = next;
-                ptr->next = new;
+                new->ptr = ptr;
+                prev->ptr = new;
                 return TRUE;
             }
         }
 
         // The item belongs at the end of the list.
-        ptr->next = new;
+        prev->ptr = new;
     }
 
-    return TRUE;
+    return FALSE;
 }
 
 /*
@@ -116,7 +136,7 @@ int insert_sortedlist(SortedList *list, void *newObj) {
  * free memory. The item is safely removed from the list, but it is the
  * iterator's responsibility to free memory after it is done with it.
  */
-int remove_sortedlist(SortedList *list, void *newObj) {
+int remove_sortedlist(SortedList *list, Record *newObj) {
     Node *del;
     if (!list || !list->head) {
         return FALSE;
@@ -204,12 +224,12 @@ void destroy_sliter(SortedListIterator *iter) {
  * If the list for the given iterator is destroyed, then the result of a call
  * to this function is unsafe and undefined.
  */
-void *next_item(SortedListIterator *iter) {
+Record *next_item(SortedListIterator *iter) {
     if (!iter || !iter->ptr) {
         return NULL;
     }
 
-    void *data = iter->ptr->data;
+    Record *data = iter->ptr->data;
     Node *ptr = iter->ptr;
     iter->ptr = iter->ptr->next;
     if (iter->ptr) {

@@ -1,34 +1,31 @@
-#ifndef SORTED_LIST_H
-#define SORTED_LIST_H
 /*
  * sorted-list.h
  * Structures and prototypes for the sorted list. The only addition to the base
  * code is a struct definition for a linked list node and some other helper
  * functions.
  */
+#ifndef SORTED_LIST_H
+#define SORTED_LIST_H
 
+#include "record.h"
 #include <stdlib.h>
 
 /*
  * When your sorted list is used to store objects of some type, since the
  * type is opaque to you, you will need a comparator function to order
  * the objects in your sorted list.
- 
+ *
  * You can expect a comparator function to return -1 if the 1st object is
  * smaller, 0 if the two objects are equal, and 1 if the 2nd object is
  * smaller.
- *
- * Note that you are not expected to implement any comparator functions.
- * You will be given a comparator function when a new sorted list is
- * created.
  */
-typedef int (*CompFunc)(void *, void *);
+typedef int (*CompFunc)(Record *, Record *);
 
 /*
  * Type for a basic linked list node.
  */
 struct Node {
-    void *data;
+    Record *data;
     struct Node *next;
     int references;
 };
@@ -38,7 +35,7 @@ typedef struct Node Node;
 /**
  * Creates a new node with the given data.
  */
-Node *create_node(void *, struct Node *);
+Node *create_node(Record *, struct Node *);
 
 /*
  * Sorted list type.
@@ -88,7 +85,7 @@ void destroy_sortedlist(SortedList *);
  *
  * You need to fill in this function as part of your implementation.
  */
-int insert_sortedlist(SortedList *, void *);
+int insert_sortedlist(SortedList *, Record *);
 
 /*
  * SLRemove removes a given object from a sorted list.  Sorted ordering
@@ -98,7 +95,7 @@ int insert_sortedlist(SortedList *, void *);
  *
  * You need to fill in this function as part of your implementation.
  */
-int remove_sortedlist(SortedList *, void *);
+int remove_sortedlist(SortedList *, Record *);
 
 /*
  * SLCreateIterator creates an iterator object that will allow the caller
@@ -136,6 +133,6 @@ void destroy_sliter(SortedListIterator *);
  *
  * You need to fill in this function as part of your implementation.
  */
-void *next_item(SortedListIterator *);
+Record *next_item(SortedListIterator *);
 
 #endif

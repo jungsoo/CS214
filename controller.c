@@ -1,11 +1,12 @@
 #include "hashmap.c"
+#include "record.c"
 #include "tokenizer.c"
 #include <dirent.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 
-#define MAXBUFSIZE 10000
+#define MAXBUFSIZE 10240
 #define TRUE 1
 #define FALSE 0
 
@@ -43,18 +44,34 @@ void destroy_controller(Controller *controller) {
 }
 
 /**
+ * Converts a string to lowercase.
+ */
+void strtolower(char *string) {
+    int i;
+    for (i = 0; i < strlen(string); i++) {
+        string[i] = tolower(string[i]);
+    }
+}
+
+/**
  * Indexes a single file into the inverted index. Returns zero on failure and a
  * positive number on success.
  */
-int index_file(Controller *controller, FILE *file) {
+int index_file(Controller *controller, const char *filename) {
+    FILE *file;
     TokenizerT *tokenizer;
-    char *text, token;
+    char *text, *token;
     size_t nmemb;
+
+    file = fopen(filename, "r");
+    if (!file) {
+        return 0;
+    }
 
     // First, read in the file as a string
     fseek(file, 0, SEEK_END);
     nmemb = ftell(file);
-    fseek(file, 0 , SEEK_SET);
+    rewind(file);
     text = (char *) malloc(nmemb * sizeof(char));
     fread(text, sizeof(char), nmemb, file);
     fclose(file);
@@ -63,10 +80,10 @@ int index_file(Controller *controller, FILE *file) {
     tokenizer = TKCreate(text);
     if (tokenizer) {
         while ((token = TKGetNextToken(tokenizer)) != NULL) {
-            // TODO
+            strtolower(token);
+            // TODO add to index
         }
     }
-
     TKDestroy(tokenizer);
     return 0;
 }
@@ -75,42 +92,39 @@ int index_file(Controller *controller, FILE *file) {
  * Recursively indexes all files in the directory into the inverted index.
  * Returns zero on failure and a positive number on success.
  */
-int index_dir(Controller *controller, DIR *dir) {
-    DIR *subdir;
+int index_dir(Controller *controller, char *dirname) {
+    DIR *dir;
     FILE *file;
     struct dirent *dent;
-    int retval;
 
-    retval = 1;
+    dir = opendir(dirname);
+    if (!dir) {
+        return 0;
+    }
+
     while ((dent = readdir(dir))) {
+        size_t size = strlen(dent->dname) + strlen(dirname);
+        char *name = calloc(size, sizeof(char));
+        snprintf(name, size, "%s/%s", dirname, dent->dname);
+
         if (strncmp(dent->d_name, ".", sizeof(char)) == 0) {
             // Hidden file
             continue;
         }
-        else if (is_directory(dent->dname)) {
+        else if (is_directory(name)) {
             // Recurse
-            subdir = opendir(dent->dname);
-            if (subdir) {
-                index_dir(controller, opendir(dent->dname));
-            }
-            else {
-                retval = 0;
-                break;
+            index_dir(controller, name);
+        }
+        else if(is_file(name)) {
+            // Index this file
+            if (!index_file(controller, name)) {
+                fprintf(stderr, "Error while indexing %s\n", name);
             }
         }
-        else if(is_file(dent->d_name)) {
-            // Compatible with non-Linux, non-BSD by not using d_type
-            if (!index_file(controller, dent->dname)) {
-                retval = 0;
-                break;
-            }
-        }
-        else
-            continue;
     }
 
     closedir(dir);
-    return retval;
+    return 1;
 }
 
 /**
@@ -119,27 +133,34 @@ int index_dir(Controller *controller, DIR *dir) {
  */
 int dump(Controller *controller, FILE *target) {
     // TODO
-    char *buffer;
+    char *buffer, *token;
+    Record *record;
 
     buffer = (char *) calloc(MAXBUFSIZE, sizeof(char));
     if (!buffer) {
         return 0;
     }
 
-    
+    // TODO work out the Record details, etc.
+    while (token) {
+    while ((record = next_record())) {
+        
+    }
+    }
     return 1;
 }
 
 /**
  * Returns a positive number if the filename is a readable file; zero otherwise.
  */
-int is_file(const char *file) {
-    struct stat s;
-    if (stat(file, &s) == 0 && s.st_mode & S_IFREG) {
+int is_file(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (file) {
+        fclose(file);
         return 1;
     }
     else {
-        return 0
+        return 0;
     }
 }
 
@@ -148,11 +169,12 @@ int is_file(const char *file) {
  * zero otherwise.
  */
 int is_directory(const char *dir) {
-    struct stat s;
-    if (stat(file, &s) == 0 && s.st_mode & S_IFDIR) {
+    DIR *directory = opendir(dir);
+    if (directory) {
+        closedir(directory);
         return 1;
     }
     else {
-        return 0
+        return 0;
     }
 }

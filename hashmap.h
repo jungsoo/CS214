@@ -7,28 +7,6 @@
 unsigned int hash(const char *);
 
 /**
- * A basic type that stores indexer-related data.
- */
-struct Record {
-    char *token;
-    char *filename;
-    int hits;
-};
-
-typedef struct Record Record;
-
-/**
- * Creates a new record. Returns a pointer to the new object, or NULL if the
- * call fails.
- */
-Record *create_record(const char *, int, Record *);
-
-/**
- * Destroys and frees all memory associated with the given record.
- */
-void destroy_record(Record *);
-
-/**
  * A structure for a hash map for storing data as strings. As this is a simple
  * hash map, there is no load balancing and no rehashing.
  */
