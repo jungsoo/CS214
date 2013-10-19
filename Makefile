@@ -5,17 +5,16 @@ AR = ar -cr
 CC = gcc
 CFLAGS = -Wall -g
 
-all:
-	$(CC) $(CFLAGS) -o index *.c
+all: index
 
-index: libcontroller.a indexer.c
-	$(CC) $(CFLAGS) -static -Lcontroller -o index indexer.c
+index: libcontroller.a
+	$(CC) $(CFLAGS) -static -Lcontroller -o index *.c
 
 libcontroller.a: controller.o inverted-index.o
-	$(AR) libcontroller.a controller.o inverted-index.o
+	$(AR) libcontroller.a inverted-index.o controller.o
 
 controller.o: libutil.a controller.c controller.h
-	$(CC) $(CFLAGS) -static -Lutil -c controller.c inverted-index.c
+	$(CC) $(CFLAGS) -static -Lutil -c controller.c
 
 inverted-index.o: libutil.a inverted-index.c inverted-index.h
 	$(CC) $(CFLAGS) -static -Lutil -c inverted-index.c

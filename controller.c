@@ -121,21 +121,24 @@ void index_dir(Controller *controller, const char *dirname) {
 }
 
 /**
- * Dumps the contents of the inverted index into the target file. Returns zero
- * on error and a positive number on success.
+ * Dumps the contents of the inverted index into the target file. If an
+ * inverted-index file has been created, return a positive number; if no tokens
+ * were found, return 0.
  */
 int dump(Controller *controller, FILE *target) {
     Record *record;
     SortedList *list;
     SortedListIterator *iterator;
     char *token;
-    int i, first, dirty;
+    int i, first, dirty, count;
 
-    first = 1;
+    count = 0;
     dirty = 0;
+    first = 1;
 
     // Loop through each list
     for (i = 0; i < 36; i++) {
+        count = 0;
         token = NULL;
         list = controller->index->lists[i];
         if (list) {
@@ -147,6 +150,7 @@ int dump(Controller *controller, FILE *target) {
             while ((record = next_item(iterator)) != NULL) {
                 if (token == NULL || strcmp(record->token, token) != 0) {
                     // Moving on to the next token
+                    count = 1;
                     if (!first) {
                         fprintf(target, "\n</list>\n");
                     }
@@ -157,8 +161,10 @@ int dump(Controller *controller, FILE *target) {
                             record->filename, record->hits);
                 }
                 else {
-                    // Continuing with the current token
-                    fprintf(target, " %s %d", record->filename, record->hits);
+                    // Continuing with the current token, but only print top 5
+                    if (count++ < 5) {
+                        fprintf(target, " %s %d", record->filename, record->hits);
+                    }
                 }
             }
             destroy_iter(iterator);
@@ -168,10 +174,6 @@ int dump(Controller *controller, FILE *target) {
     if (dirty) {
         // Only write to the file if something was found.
         fprintf(target, "\n</list>\n");
-    }
-    else {
-        printf("indexer: warning: No tokens found. Nothing has been written to"
-               "the output file.\n");
     }
     return 1;
 }
