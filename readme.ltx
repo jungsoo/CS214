@@ -1,0 +1,55 @@
+\documentclass{report}
+\begin{document}
+\title{Project 3 - Inverted Index}
+\author{Kyle Suarez\\
+    \texttt{kds124@rutgers.edu}}
+\date{\today}
+\maketitle
+
+\section{Overview}
+At first, I wanted to make the inverted index be represented as a hash map in
+internal memory. It would contain lists of records, where each record is an
+example of a token, a file where it's found, and the number of hits in that
+file. However, the problem comes in output - the output must be in sorted order. Even
+by using sorted lists, it will be difficult to find the next token in
+alphabetical order because of the random nature of where each record gets hashed
+in the hash map.
+
+Here, the inverted index is an array of pointers to sorted lists. Records are
+sorted according to the first letter of the token it represents. There are 36
+lists total - one for each letter of the alphabet, plus ten numbers.
+
+\section{Analysis}
+\subsection{Runtime Analysis}
+Given a token and a filename, adding or updating the appropriate record with the
+new number of hits takes, in the worst case, \verb/O(n)/ time, with \verb/n/
+being the total number of tokens found. This occurs when every word in the file
+begins with the same letter - as such, they all get hashed to the same sorted
+list, and the runtime degenerates to insertion into a linked list. In the more
+general case, runtime is still roughly linear due to sorted list insertion, but
+if the words are more spread apart, the actual runtime will be slightly faster.
+
+Dumping the inverted index to the file is rather costly; it runs in time linear
+in the number of tokens (that is, \verb/O(n)/). I rely on the buffering done by
+C file streams and hope that disk accesses aren't as frequent as my calls to
+\verb/fprintf()/. 
+
+\subsection{Memory Usage}
+The most costly part of the entire program is probably the indexing of files. In
+order to use the tokenizer, I immediately open the entire file, dump its
+contents into an appropriately-sized buffer, and then tokenize that buffer. It
+would be more cache-friendly to read small chunks from the file stream and
+tokenize the smaller pieces instead. This operation trumps any of the filesystem
+accesses done during the directory walk in the recursive method
+\verb/index_dir()/.
+
+Data structure-wise, I tried to be as prudent as possible. For example, in the
+inverted index, there is space for 36 sorted lists. However, I only allocate
+space for a particular slot if it is needed. I also try to be prudent with the
+use of records; every time a known token is found in a known file, an existing
+record struct gets updated instead of creating a new one. Internally, however, I
+copy over tokens and filenames so that each record has its own copy for the sake
+of memory safety; this can be streamlined so that each record referring to the
+same token points to the same string (no calls to \verb/strcpy()/).
+
+\end{document}
