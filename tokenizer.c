@@ -1,20 +1,11 @@
-/*
- * tokenizer.c
- */
+#include "tokenizer.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 #define MAX_HEX_CHARS 2
 #define MAX_OCT_CHARS 3
-
-struct TokenizerT_ {
-	char* copied_string;
-	char* current_position;
-};
-
-typedef struct TokenizerT_ TokenizerT;
 
 char is_escape_character(char character) {
 	

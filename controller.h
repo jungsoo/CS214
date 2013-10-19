@@ -1,9 +1,14 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
+#include "controller.h"
 #include "inverted-index.h"
+#include "record.h"
+#include "sorted-list.h"
+#include "tokenizer.h"
 #include <dirent.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/types.h>
 
 /**
@@ -30,12 +35,12 @@ void destroy_controller(Controller *);
 /**
  * Indexes a single file into the inverted index.
  */
-int index_file(Controller *, const char*);
+void index_file(Controller *, const char*);
 
 /**
  * Recursively indexes all files in the directory into the inverted index.
  */
-int index_dir(Controller *, const char *);
+void index_dir(Controller *, const char *);
 
 /**
  * Dumps the contents of the inverted index into the target file.

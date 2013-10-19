@@ -1,6 +1,5 @@
 #include "record.h"
 #include "sorted-list.h"
-#include <stdio.h>
 #include <stdlib.h>
 
 #define TRUE 1
@@ -63,11 +62,10 @@ void destroy_sortedlist(SortedList *list) {
  */
 int insert_sortedlist(SortedList *list, const char *token, const char *filename) {
     Node *new, *ptr, *prev;
-    Record *record;
+    Record *record, *temp;
     int c, retval;
 
-    // TODO 86 'record' uninitialized. just make it now
-
+    temp = create_record(token, filename, 1);
     if (!list) {
         retval = 0;
     }
@@ -85,7 +83,7 @@ int insert_sortedlist(SortedList *list, const char *token, const char *filename)
             retval = 0;
         }
     }
-    else if ((c = list->compare(record, list->head->data)) <= 0) {
+    else if ((c = list->compare(temp, list->head->data)) <= 0) {
         if (c < 0) {
             // Belongs at the head of the list
             record = create_record(token, filename, 1);
@@ -111,7 +109,7 @@ int insert_sortedlist(SortedList *list, const char *token, const char *filename)
         ptr = list->head;
         prev = NULL;
         for (; ptr; prev = ptr, ptr = ptr->next) {
-            c = list->compare(record, ptr->data);
+            c = list->compare(temp, ptr->data);
             if (c == 0) {
                 // Update this node and we're done.
                 ptr->data->hits++;

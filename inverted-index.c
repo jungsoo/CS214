@@ -1,5 +1,6 @@
 #include "inverted-index.h"
 #include <ctype.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 /**
@@ -35,15 +36,17 @@ int put_record(Index *index, const char *tok, const char *fname) {
     i = hash(tok);
     if (i == -1) {
         // This isn't a valid token and has no place in the index.
+        printf("Token is not valid; skipping.\n");
         return 0;
     }
     else {
         // Simply add or update the appropriate sorted list.
         list = index->lists[i];
         if (list == NULL) {
-            list = create_sortedlist(reccmp);
+            printf("Created a new sorted list for this letter.\n");
+            index->lists[i] = create_sortedlist(reccmp);
         }
-        return insert_sortedlist(list, tok, fname);
+        return insert_sortedlist(index->lists[i], tok, fname);
     }
 }
 

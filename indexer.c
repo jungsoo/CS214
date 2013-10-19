@@ -1,8 +1,6 @@
-#include "controller.c"
-#include <dirent.h>
+#include "controller.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
 
 /**
  * Prints this program's usage to standard out.
@@ -16,8 +14,7 @@ void show_usage(void) {
  */
 int main(int argc, char **argv) {
     Controller *controller;
-    DIR *targetdir;
-    FILE *indexfile, *targetfile;
+    FILE *indexfile;
     int result;
 
     // Check for proper input
@@ -48,11 +45,11 @@ int main(int argc, char **argv) {
     }
 
     // Next, perform the indexing
-    if (is_file(argv[2])) {
-        index_file(controller, argv[2]);
-    }
-    else if (is_directory(argv[2])) {
+    if (is_directory(argv[2])) {
         index_dir(controller, argv[2]);
+    }
+    else if (is_file(argv[2])) {
+        index_file(controller, argv[2]);
     }
     else {
         fprintf(stderr,
@@ -64,5 +61,6 @@ int main(int argc, char **argv) {
     // Finally, dump the inverted index to file
     result = dump(controller, indexfile);
     destroy_controller(controller);
+    fclose(indexfile);
     return result;
 }
