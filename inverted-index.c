@@ -15,7 +15,7 @@ TrieNode *create_trienode(const char *substring) {
 TrieIndex *create_index() {
     TrieIndex *index = (TrieIndex *)malloc(sizeof(struct _TrieIndex));
     char *empty = (char *)malloc(sizeof(char));
-    empty = "";
+    *empty = '\0';
     index->root = create_trienode(empty);
 
     return index;
