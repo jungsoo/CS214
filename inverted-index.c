@@ -39,20 +39,16 @@ int put_record(TrieIndex *index, const char *tok, const char *fname) {
 }
 
 int put_helper(TrieNode *curr, const char *tok, const char *fname) {
-    if (strcmp(curr->substring, tok) == 0) {
+    int token_index = strlen(curr->substring);
+    if (strcmp(curr->substring, tok) == 0 || tok[token_index]) {
         if (curr->records == NULL) {
             curr->records = create_sortedlist(reccmp);
         }
         return insert_sortedlist(curr->records, tok, fname);
     } else {
-        int token_index = strlen(curr->substring);
         int child_index = child_i(tok[token_index + 1]);
 
-        if (child_index == -1) {
-            char *new_substr = (char *)malloc(sizeof(char) * (token_index + 1));
-            strncpy(new_substr, tok, token_index + 1);
-            curr->children[child_index] = create_trienode(new_substr);
-        } else if (curr->children[child_index] == NULL) {
+        if (curr->children[child_index] == NULL) {
             char *new_substr = (char *)malloc(sizeof(char) * (token_index + 1));
             strncpy(new_substr, tok, token_index + 1);
             curr->children[child_index] = create_trienode(new_substr);
