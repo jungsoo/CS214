@@ -26,8 +26,9 @@ int child_i(char ch) {
         return ch - '0';
     } else if (isalpha(ch)) {
         return ch - 'a';
-    }
-    else {
+    } else if (ch == '\0') {
+        return '\0';
+    } else {
         printf("fuck you\n");
         abort();
     }
@@ -38,8 +39,8 @@ int put_record(TrieIndex *index, const char *tok, const char *fname) {
 }
 
 int put_helper(TrieNode *curr, const char *tok, const char *fname) {
+    SortedList *records = curr->records;
     if (strcmp(curr->substring, tok) == 0) {
-        SortedList *records = curr->records;
         if (records == NULL) {
             curr->records = create_sortedlist(reccmp);
         }
@@ -48,9 +49,14 @@ int put_helper(TrieNode *curr, const char *tok, const char *fname) {
         int token_index = strlen(curr->substring);
         int child_index = child_i(tok[token_index + 1]);
 
+        if (child_index == '\0') {
+            return insert_sortedlist(records, tok, fname);
+        }
         if (curr->children[child_index] == NULL) {
             char *new_substr = (char *)malloc(sizeof(char) * (token_index + 1));
-            curr->children[child_index] = create_trienode(strncpy(new_substr, tok, token_index + 1));
+            strncpy(new_substr, tok, token_index + 1);
+            printf("%s\n", new_substr);
+            curr->children[child_index] = create_trienode(new_substr);
         }
 
         return put_helper(curr->children[child_index], tok, fname);
