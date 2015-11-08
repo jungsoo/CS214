@@ -49,10 +49,10 @@ int put_helper(TrieNode *curr, const char *tok, const char *fname) {
         int token_index = strlen(curr->substring);
         int child_index = child_i(tok[token_index + 1]);
 
-        if (child_index == '\0') {
-            records = create_sortedlist(reccmp);
-            return insert_sortedlist(records, tok, fname);
-        }
+//        if (child_index == '\0') {
+//            records = create_sortedlist(reccmp);
+//            return insert_sortedlist(records, tok, fname);
+//        }
         if (curr->children[child_index] == NULL) {
             char *new_substr = (char *)malloc(sizeof(char) * (token_index + 1));
             strncpy(new_substr, tok, token_index + 1);
