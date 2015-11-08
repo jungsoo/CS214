@@ -20,8 +20,9 @@ Controller *create_controller() {
         if (controller->index) {
             return controller;
         }
-        else
+        else {
             free(controller);
+        }
     }
 
     return NULL;
@@ -126,6 +127,7 @@ void index_dir(Controller *controller, const char *dirname) {
  * were found, return 0.
  */
 int dump(Controller *controller, FILE *target) {
+    printf("dumping\n");
     if (controller->index && controller->index->root) {
         fprintf(target, "{\"list\" : [\n");
         dump_helper(controller->index->root, target);
@@ -135,6 +137,8 @@ int dump(Controller *controller, FILE *target) {
 }
 
 void dump_helper(TrieNode *node, FILE *target) {
+
+    printf("i need help dumping\n");
     if (node->records) {
         SortedListIterator *iterator = create_iter(node->records);
         Record *record;
