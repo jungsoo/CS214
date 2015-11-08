@@ -40,7 +40,7 @@ int put_record(TrieIndex *index, const char *tok, const char *fname) {
 
 int put_helper(TrieNode *curr, const char *tok, const char *fname) {
     int token_index = strlen(curr->substring);
-    if (strcmp(curr->substring, tok) == 0 || tok[token_index+1] == '\0') {
+    if (strcmp(curr->substring, tok) == 0 || tok[token_index] == '\0') {
         if (curr->records == NULL) {
             curr->records = create_sortedlist(reccmp);
         }
