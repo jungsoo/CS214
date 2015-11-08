@@ -29,7 +29,7 @@ int child_i(char ch) {
     } else if (ch == '\0') {
         return -1;
     } else {
-        printf("fuck you\n");
+        printf("THIS SHOULD NEVER HAPPEN\n");
         abort();
     }
 }
@@ -39,17 +39,17 @@ int put_record(TrieIndex *index, const char *tok, const char *fname) {
 }
 
 int put_helper(TrieNode *curr, const char *tok, const char *fname) {
-    int token_index = strlen(curr->substring);
-    if (strcmp(curr->substring, tok) == 0 || tok[token_index] == '\0') {
+    if (strcmp(curr->substring, tok) == 0) {
         if (curr->records == NULL) {
             curr->records = create_sortedlist(reccmp);
         }
         return insert_sortedlist(curr->records, tok, fname);
     } else {
-        int child_index = child_i(tok[token_index + 1]);
+        int token_index = strlen(curr->substring);
+        int child_index = child_i(tok[token_index]);
 
         if (curr->children[child_index] == NULL) {
-            char *new_substr = (char *)malloc(sizeof(char) * (token_index + 1));
+            char *new_substr = (char *)calloc((token_index + 1), sizeof(char));
             strncpy(new_substr, tok, token_index + 1);
             curr->children[child_index] = create_trienode(new_substr);
         }
