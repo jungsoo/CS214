@@ -49,9 +49,8 @@ int put_helper(TrieNode *curr, const char *tok, const char *fname) {
         int child_index = child_i(tok[token_index + 1]);
 
         if (curr->children[child_index] == NULL) {
-            char *new_substr = (char *)malloc(sizeof(char) * (token_index + 2));
+            char *new_substr = (char *)malloc(sizeof(char) * (token_index + 1));
             strncpy(new_substr, tok, token_index + 1);
-            new_substr[token_index + 1] = '\0';
             curr->children[child_index] = create_trienode(new_substr);
         }
         return put_helper(curr->children[child_index], tok, fname);
