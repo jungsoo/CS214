@@ -126,6 +126,7 @@ void index_dir(Controller *controller, const char *dirname) {
  * inverted-index file has been created, return a positive number; if no tokens
  * were found, return 0.
  */
+int is_first_tok = 1;
 int dump(Controller *controller, FILE *target) {
     if (controller->index && controller->index->root) {
         fprintf(target, "{\"list\" : [\n");
@@ -133,7 +134,7 @@ int dump(Controller *controller, FILE *target) {
     } else {
         return 0;
     }
-    fprintf(target, "]}\n");
+    fprintf(target, "\n]}\n");
     return 1;
 }
 
@@ -142,12 +143,20 @@ void dump_helper(TrieNode *node, FILE *target) {
     if (node->records) {
         SortedListIterator *iterator = create_iter(node->records);
         Record *record;
-        fprintf(target, "\t{\"%s\" : [\n", node->substring);
-
-        while ((record = next_item(iterator))) {
-            fprintf(target, "\t\t{\"%s\" : %d},\n", record->filename, record->hits);
+        if (is_first_tok) {
+            fprintf(target, "\t{\"%s\" : [\n", node->substring);
+            is_first_tok = 0;
+        } else {
+            fprintf(target, ",\n\t{\"%s\" : [\n", node->substring);
         }
-        fprintf(target, "\t]},\n");
+    
+        if ((record = next_item(iterator))) {
+            fprintf(target, "\t\t{\"%s\" : %d}", record->filename, record->hits);
+        }
+        while ((record = next_item(iterator))) {
+            fprintf(target, ",\n\t\t{\"%s\" : %d}", record->filename, record->hits);
+        }
+        fprintf(target, "\n\t]}");
         destroy_iter(iterator);
     }
 

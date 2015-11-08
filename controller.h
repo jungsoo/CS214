@@ -1,15 +1,16 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
+#include <dirent.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/types.h>
+
 #include "controller.h"
 #include "inverted-index.h"
 #include "record.h"
 #include "sorted-list.h"
 #include "tokenizer.h"
-#include <dirent.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/types.h>
 
 /**
  * Type definition for a basic controller. Allows for flexibility of background
