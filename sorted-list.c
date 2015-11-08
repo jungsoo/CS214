@@ -1,6 +1,6 @@
+#include <assert.h>
 #include "record.h"
 #include "sorted-list.h"
-#include <stdlib.h>
 
 #define TRUE 1
 #define FALSE 0
@@ -61,9 +61,13 @@ void destroy_sortedlist(SortedList *list) {
  * then it returns 0.
  */
 int insert_sortedlist(SortedList *list, const char *token, const char *filename) {
-    Node *new, *ptr, *prev;
-    Record *record, *temp;
-    int c, retval;
+    Node *new = NULL;
+    Node *ptr = NULL;
+    Node *prev = NULL;
+    Record *record = NULL;
+    Record *temp = NULL;
+    int c;
+    int retval = 0;
 
     temp = create_record(token, filename, 1);
     if (!list) {
@@ -73,30 +77,25 @@ int insert_sortedlist(SortedList *list, const char *token, const char *filename)
         // First item added to the list. Create a new node
         record = create_record(token, filename, 1);
         new = create_node(record, NULL);
-        if (record && new) {
-            list->head = new;
-            retval = 1;
-        }
-        else {
-            free(record);
-            free(new);
-            retval = 0;
-        }
+
+        assert(new);
+        assert(record);
+
+        // attach the node to the head of the list
+        list->head = new;
+        retval = 1;
     }
     else if ((c = list->compare(temp, list->head->data)) <= 0) {
         if (c < 0) {
             // Belongs at the head of the list
             record = create_record(token, filename, 1);
             new = create_node(record, list->head);
-            if (record && new) {
-                list->head = new;
-                retval = 1;
-            }
-            else {
-                free(record);
-                free(new);
-                retval = 0;
-            }
+
+            assert(new);
+            assert(record);
+
+            list->head = new;
+            retval = 1;
         }
         else {
             // Match - update record!
