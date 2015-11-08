@@ -151,6 +151,8 @@ void dump_helper(TrieNode *node, FILE *target) {
     }
 
     for (int i = 0; i < 36; i++) {
+        printf("i need help dumping\n");
+        
         if (node->children[i]) {
             dump_helper(node->children[i], target);
         }
