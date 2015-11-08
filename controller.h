@@ -16,7 +16,7 @@
  * model changes without affecting the front end.
  */
 struct Controller {
-    Index *index;
+    TrieIndex *index;
 };
 
 typedef struct Controller Controller;
@@ -46,6 +46,7 @@ void index_dir(Controller *, const char *);
  * Dumps the contents of the inverted index into the target file.
  */
 int dump(Controller *, FILE *);
+void dump_helper(TrieNode *, FILE *);
 
 /**
  * Determines whether or not a filename refers to a regular file.

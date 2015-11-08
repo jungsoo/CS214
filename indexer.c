@@ -46,9 +46,13 @@ int main(int argc, char **argv) {
     // See if the index file exists
     if (access(argv[1], F_OK) != -1) {
         fprintf(stderr,
-                "index: error: Target index file '%s' already exists.\n",
+                "index: error: Target index file '%s' already exists. Overwrite? (Y/n)\n",
                 argv[1]);
-        return 1;
+        char input[1];
+        fgets(input, 2, stdin);
+        if (tolower(input[0]) != 'y') {
+            return 1;
+        }
     }
 
     // Create the controller

@@ -1,11 +1,4 @@
 #include "tokenizer.h"
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#define MAX_HEX_CHARS 2
-#define MAX_OCT_CHARS 3
 
 char is_escape_character(char character) {
 	
@@ -224,7 +217,7 @@ char *TKGetNextToken(TokenizerT *tk) {
 	char* token_start = NULL;
 
 	while(tk->current_position - tk->copied_string < strlen(tk->copied_string)) {
-		if(!is_delimiter(*tk->current_position)) {
+		if(isalpha(*tk->current_position)) {
 		
 			token_start = tk->current_position;
 			break;
@@ -248,3 +241,4 @@ char *TKGetNextToken(TokenizerT *tk) {
 	token[(tk->current_position - token_start)] = '\0';
 	return token;
 }
+

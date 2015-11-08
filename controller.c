@@ -126,6 +126,35 @@ void index_dir(Controller *controller, const char *dirname) {
  * were found, return 0.
  */
 int dump(Controller *controller, FILE *target) {
+    if (controller->index && controller->index->root) {
+        fprintf(target, "{\"list\" : [\n");
+        dump_helper(controller->index->root, target);
+    }
+    fprintf(target, "]}\n");
+    return 1;
+}
+
+void dump_helper(TrieNode *node, FILE *target) {
+    if (node->records) {
+        SortedListIterator *iterator = create_iter(node->records);
+        Record *record;
+        fprintf(target, "\t{\"%s\" : [\n", node->substring);
+
+        while ((record = next_item(iterator))) {
+            fprintf(target, "\t\t{\"%s\" : %d},\n", record->filename, record->hits);
+        }
+        fprintf(target, "\t]},\n");
+    }
+
+    for (int i = 0; i < 36; i++) {
+        if (node->children[i]) {
+            dump_helper(node->children[i], target);
+        }
+    }
+}
+
+/*
+int dump(Controller *controller, FILE *target) {
     Record *record;
     SortedList *list;
     SortedListIterator *iterator;
@@ -177,6 +206,7 @@ int dump(Controller *controller, FILE *target) {
     }
     return 1;
 }
+*/
 
 /**
  * Returns a positive number if the filename is a readable file; zero otherwise.

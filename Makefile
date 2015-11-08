@@ -8,16 +8,16 @@ CFLAGS = -Wall -g
 all: index
 
 index: libcontroller.a
-	$(CC) $(CFLAGS) -static -Lcontroller -o index *.c
+	$(CC) $(CFLAGS) -Lcontroller -o index *.c
 
 libcontroller.a: controller.o inverted-index.o
 	$(AR) libcontroller.a inverted-index.o controller.o
 
 controller.o: libutil.a controller.c controller.h
-	$(CC) $(CFLAGS) -static -Lutil -c controller.c
+	$(CC) $(CFLAGS) -Lutil -c controller.c
 
 inverted-index.o: libutil.a inverted-index.c inverted-index.h
-	$(CC) $(CFLAGS) -static -Lutil -c inverted-index.c
+	$(CC) $(CFLAGS) -Lutil -c inverted-index.c
 
 libutil.a: record.o sorted-list.o tokenizer.o
 	$(AR) libutil.a record.o sorted-list.o tokenizer.o

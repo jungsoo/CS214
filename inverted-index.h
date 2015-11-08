@@ -2,37 +2,50 @@
 #define INDEX_H
 
 #include "sorted-list.h"
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 
-/**
- * A hash function for hashing strings to integer values.
- */
-int hash(const char *);
-
-/**
- * A structure represented an inverted index. It's an array of sorted lists,
- * which stores information about tokens in sorted order.
- */
-struct Index {
-    SortedList *lists[36];
+typedef struct _TrieNode TrieNode;
+struct _TrieNode {
+    TrieNode *children[36];
+    SortedList *records;
+    const char *substring;
 };
 
-typedef struct Index Index;
+/**
+ * The inverted index represented by a trie data structure.
+ */
+struct _TrieIndex {
+    TrieNode * root;
+};
+typedef struct _TrieIndex TrieIndex;
+
+
+/**
+ * Returns a pointer to a new node, or NULL if the call fails.
+ */
+TrieNode *create_trienode(const char *);
 
 /**
  * Returns a pointer to a new inverted index, or NULL if the call fails.
  */
-Index *create_index();
+TrieIndex *create_index();
 
 /**
  * Adds or updates another record for the given key.
  */
-int put_record(Index *, const char *, const char *);
+int put_record(TrieIndex *, const char *, const char *);
+int child_index(char);
+int put_helper(TrieNode *, const char *, const char *);
 
 /**
  * Frees all dynamic memory associated with the given hash map. Note that the
  * use of all iterators associated with the index after its destruction is
  * extremely unsafe.
  */
-void destroy_index(Index *);
+void destroy_index(TrieIndex *);
+int children_empty(TrieNode **);
+void destroy_helper(TrieNode *);
 
 #endif

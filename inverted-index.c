@@ -1,62 +1,93 @@
 #include "inverted-index.h"
-#include <ctype.h>
-#include <stdlib.h>
 
 /**
- * A custom hash function that returns an index based on a string's first
- * letter. Returns a valid index for the inverted index, or -1 if the string
- * starts with an inappropriate character (something non-alphanumeric).
+ * Returns a pointer to a new node, or NULL if the call fails.
  */
-int hash(const char *str) {
-    if isalpha(str[0]) {
-        return (int) (tolower(str[0]) - 'a');
-    }
-    else if (isdigit(str[0])) {
-        return (int) (str[0] - '0') + 26;
-    }
-    else
-        return -1;
+TrieNode *create_trienode(const char *substring) {
+    TrieNode *node = (TrieNode *)malloc(sizeof(struct _TrieNode));
+    node->substring = substring;
+    return node;
 }
 
 /**
  * Returns a pointer to a new inverted index, or NULL if the call fails.
  */
-Index *create_index() {
-    return (Index *) malloc(sizeof(struct Index));
+TrieIndex *create_index() {
+    TrieIndex *index = (TrieIndex *)malloc(sizeof(struct _TrieIndex));
+    char *empty = (char *)malloc(sizeof(char));
+    empty = "";
+    index->root = create_trienode(empty);
+
+    return index;
 }
 
-/**
- * Adds or updates another record for the given token in the inverted index.
- */
-int put_record(Index *index, const char *tok, const char *fname) {
-    SortedList *list;
-    int i;
+int child_i(char ch) {
+    if (isdigit(ch))
+        return ch - '0';
+    else if (isalpha(ch));
+        return ch - 'a';
+}
 
-    i = hash(tok);
-    if (i == -1) {
-        // This isn't a valid token and has no place in the index.
-        return 0;
-    }
-    else {
-        // Simply add or update the appropriate sorted list.
-        list = index->lists[i];
-        if (list == NULL) {
-            index->lists[i] = create_sortedlist(reccmp);
+int put_record(TrieIndex *index, const char *tok, const char *fname) {
+    return put_helper(index->root, tok, fname);
+}
+
+int put_helper(TrieNode *curr, const char *tok, const char *fname) {
+    if (strcmp(curr->substring, tok) == 0) {
+        SortedList *records = curr->records;
+        if (records == NULL) {
+            curr->records = create_sortedlist(reccmp);
         }
-        return insert_sortedlist(index->lists[i], tok, fname);
+        return insert_sortedlist(records, tok, fname);
+    } else {
+        int token_index = strlen(curr->substring);
+        int child_index = child_i(tok[token_index + 1]);
+
+        if (curr->children[child_index] == NULL) {
+            char *new_substr = (char *)malloc(sizeof(char) * (token_index + 1));
+            curr->children[child_index] = create_trienode(strncpy(new_substr, tok, token_index + 1));
+        }
+
+        return put_helper(curr->children[child_index], tok, fname);
     }
 }
 
 /**
- * Frees all dynamic memory associated with the given hash map. Note that the
- * use of all iterators associated with the index after its destruction is
- * extremely unsafe.
+ * Frees all dynamic memory associated with the given trie.
  */
-void destroy_index(Index *index) {
-    int i;
-
-    for (i = 0; i < 36; i++) {
-        destroy_sortedlist(index->lists[i]);
-    }
-    free(index);
+void destroy_index(TrieIndex *index) {
+    destroy_helper(index->root);
+    return free(index);
 }
+
+int children_empty(TrieNode **children) {
+    for (int i = 0; i < 36; i++) {
+        if (children[i] != NULL) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+void destroy_helper(TrieNode *node) {
+    if(children_empty(node->children)) {
+        free((char *)node->substring);
+        if (node->records) {
+            destroy_sortedlist(node->records);
+        }
+        return free(node);
+    }
+    for (int i = 0; i < 36; i++) {
+        if (node->children[i]) {
+            destroy_helper(node->children[i]);
+            return;
+        }
+    }
+
+    free((char *)node->substring);
+    if (node->records) {
+        destroy_sortedlist(node->records);
+    }
+    return free(node);
+}
+
