@@ -42,14 +42,17 @@ int put_helper(TrieNode *curr, const char *tok, const char *fname) {
     SortedList *records = curr->records;
     if (strcmp(curr->substring, tok) == 0) {
         if (records == NULL) {
-            curr->records = create_sortedlist(reccmp);
+            records = create_sortedlist(reccmp);
         }
         return insert_sortedlist(records, tok, fname);
     } else {
         int token_index = strlen(curr->substring);
         int child_index = child_i(tok[token_index + 1]);
+        printf("%s\n", tok);
 
         if (child_index == '\0') {
+            records = create_sortedlist(reccmp);
+            printf("we in dere\n");
             return insert_sortedlist(records, tok, fname);
         }
         if (curr->children[child_index] == NULL) {
