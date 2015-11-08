@@ -11,7 +11,7 @@ int reccmp(Record *r1, Record *r2) {
     Record *rec1 = (Record *) r1;
     Record *rec2 = (Record *) r2;
 
-    result = strcmp(rec1->token, rec2->token);
+    result = rec1->hits - rec2->hits;
     return result == 0 ? strcmp(rec1->filename, rec2->filename) : result;
 }
 

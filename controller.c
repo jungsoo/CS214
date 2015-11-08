@@ -127,10 +127,11 @@ void index_dir(Controller *controller, const char *dirname) {
  * were found, return 0.
  */
 int dump(Controller *controller, FILE *target) {
-    printf("dumping\n");
     if (controller->index && controller->index->root) {
         fprintf(target, "{\"list\" : [\n");
         dump_helper(controller->index->root, target);
+    } else {
+        return 0;
     }
     fprintf(target, "]}\n");
     return 1;
@@ -147,70 +148,15 @@ void dump_helper(TrieNode *node, FILE *target) {
             fprintf(target, "\t\t{\"%s\" : %d},\n", record->filename, record->hits);
         }
         fprintf(target, "\t]},\n");
+        destroy_iter(iterator);
     }
 
     for (int i = 0; i < 36; i++) {
-        
         if (node->children[i]) {
             dump_helper(node->children[i], target);
         }
     }
 }
-
-/*
-int dump(Controller *controller, FILE *target) {
-    Record *record;
-    SortedList *list;
-    SortedListIterator *iterator;
-    char *token;
-    int i, first, dirty, count;
-
-    count = 0;
-    dirty = 0;
-    first = 1;
-
-    // Loop through each list
-    for (i = 0; i < 36; i++) {
-        count = 0;
-        token = NULL;
-        list = controller->index->lists[i];
-        if (list) {
-            // Found a list of tokens to dump
-            dirty = 1;
-
-            // Loop through each node in the list
-            iterator = create_iter(list);
-            while ((record = next_item(iterator)) != NULL) {
-                if (token == NULL || strcmp(record->token, token) != 0) {
-                    // Moving on to the next token
-                    count = 1;
-                    if (!first) {
-                        fprintf(target, "\n</list>\n");
-                    }
-
-                    first = 0;
-                    token = record->token;
-                    fprintf(target, "<list> %s\n%s %d", token,
-                            record->filename, record->hits);
-                }
-                else {
-                    // Continuing with the current token, but only print top 5
-                    if (count++ < 5) {
-                        fprintf(target, " %s %d", record->filename, record->hits);
-                    }
-                }
-            }
-            destroy_iter(iterator);
-        }
-    }
-
-    if (dirty) {
-        // Only write to the file if something was found.
-        fprintf(target, "\n</list>\n");
-    }
-    return 1;
-}
-*/
 
 /**
  * Returns a positive number if the filename is a readable file; zero otherwise.
@@ -240,3 +186,4 @@ int is_directory(const char *dir) {
         return 0;
     }
 }
+

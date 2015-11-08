@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
     }
 
     // Clean stuff up before exiting
-    // destroy_controller(controller);
+    destroy_controller(controller);
     fclose(indexfile);
     return result;
 }

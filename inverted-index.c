@@ -4,7 +4,7 @@
  * Returns a pointer to a new node, or NULL if the call fails.
  */
 TrieNode *create_trienode(const char *substring) {
-    TrieNode *node = (TrieNode *)malloc(sizeof(struct _TrieNode));
+    TrieNode *node = (TrieNode *)calloc(1, sizeof(struct _TrieNode));
     node->substring = substring;
     return node;
 }
@@ -13,7 +13,7 @@ TrieNode *create_trienode(const char *substring) {
  * Returns a pointer to a new inverted index, or NULL if the call fails.
  */
 TrieIndex *create_index() {
-    TrieIndex *index = (TrieIndex *)malloc(sizeof(struct _TrieIndex));
+    TrieIndex *index = (TrieIndex *)calloc(1, sizeof(struct _TrieIndex));
     char *empty = (char *)malloc(sizeof(char));
     *empty = '\0';
     index->root = create_trienode(empty);
