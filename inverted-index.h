@@ -1,10 +1,12 @@
 #ifndef INDEX_H
 #define INDEX_H
 
-#include "sorted-list.h"
 #include <ctype.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "sorted-list.h"
 
 typedef struct _TrieNode TrieNode;
 struct _TrieNode {

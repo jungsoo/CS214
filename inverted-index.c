@@ -22,10 +22,15 @@ TrieIndex *create_index() {
 }
 
 int child_i(char ch) {
-    if (isdigit(ch))
+    if (isdigit(ch)) {
         return ch - '0';
-    else if (isalpha(ch));
+    } else if (isalpha(ch)) {
         return ch - 'a';
+    }
+    else {
+        printf("fuck you\n");
+        abort();
+    }
 }
 
 int put_record(TrieIndex *index, const char *tok, const char *fname) {
