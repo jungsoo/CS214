@@ -85,7 +85,6 @@ void destroy_helper(TrieNode *node) {
     for (int i = 0; i < 36; i++) {
         if (node->children[i]) {
             destroy_helper(node->children[i]);
-            return;
         }
     }
 
