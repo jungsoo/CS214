@@ -1,6 +1,6 @@
 Tests
 =====
-Test plan for Systems Assignment 3.
+Test plan for Systems Assignment 4.
 
 Overview
 --------
@@ -15,7 +15,8 @@ I also tested for strange inputs:
 - help invocation with `-h` or `--help`
 - indexing something not in the current folder - this executable can handle both
   relative and absolute pathnames
-- writing to a target file that already exists
+- writing to a target file that already exists (It will ask whether you want to
+        overwrite the file)
 - indexing a file that doesn't exist or is not a regular file
 - graceful exit when the target index file and the file to be indexed are the
   same
@@ -23,14 +24,15 @@ I also tested for strange inputs:
 
 Examples
 --------
-The text file `controller.c` has been indexed into `controller.invertedindex`.
+The project directory can serve as the test case. It contains various different
+edge cases such as different file formats (pdf, compiled code) so that the
+tokenizer has to sort through invalid tokens.
 
-The directory `systems` has been indexed into `systems.invertedindex`.
-- Totals for all files in this subdirectory:
-  + 1465 lines
-  + 9393 words
-  + 216631 bytes total
-- Also includes a PDF to test for non-plaintext (it only indexes word-like
-  sequences of characters)
+The text file `controller.c` has been indexed into `controller.index`.
 
-The executable `index` has been indexed to `executable.invertedindex`.
+The directory `.` (i.e. the current, project directory) has been indexed into 
+`proj.index`.
+
+The directory `pets` has been indexed to pets.index.
+
+The executable `index` has been indexed to `executable.index`.

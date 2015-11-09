@@ -1,55 +1,65 @@
 \documentclass{report}
 \begin{document}
-\title{Project 3 - Inverted Index}
-\author{Kyle Suarez\\
-    \texttt{kds124@rutgers.edu}}
+\title{Project 4 - Indexer}
+\author{Jungsoo Park\\
+    \texttt{jungsoo.park@rutgers.edu}}
 \date{\today}
 \maketitle
 
 \section{Overview}
-At first, I wanted to make the inverted index be represented as a hash map in
-internal memory. It would contain lists of records, where each record is an
-example of a token, a file where it's found, and the number of hits in that
-file. However, the problem comes in output - the output must be in sorted order. Even
-by using sorted lists, it will be difficult to find the next token in
-alphabetical order because of the random nature of where each record gets hashed
-in the hash map.
+The central data structure to this inverted index is a Trie. Tokens from each
+file in the directory are passed from the tokenizer and into the inverted index
+and inserted into the trie to maintain lexicographical order of each token. Trie
+nodes then contain a sorted list, which is a linked list ordered by the
+lexicographical order of the file names.
 
-Here, the inverted index is an array of pointers to sorted lists. Records are
-sorted according to the first letter of the token it represents. There are 36
-lists total - one for each letter of the alphabet, plus ten numbers.
+After the trie is built, it is accessed in dump() which prints out the contents
+of the trie in a JSON format. Its traversal method is pre-order, which allows
+for the trie to be printed in lexicographical order of its tokens.
+
+\subsection{Project Structure}
+This program is divided up into indexer.c, controller.c, tokenizer.c,
+inverted-index.c, sorted-list.c, and record.c.
+
+The indexer.c is the main() of the entire program. This is the highest level of
+the code, where I/O with the user is handled. The the files and directories are
+accessed here and are passed into the controller.
+
+controller.c is the main connecting glue for the entire program. It allows for
+the program to be modular. For example, inverted-index.c connects here meaning a
+different implementation of the data structure can be used here. controller.c
+also contains dump, which traverses through the data structure in
+inverted-index.c and spits out the JSON file.
+
+tokenizer.c simply takes the contents of a file and acts as a scanner tokenizing
+the file into the desired input.
+
+inverted-index.c is our data structure, which is a trie in this case.
+
+sorted-list.c is the list of records (record.c) kept by nodes of the trie. The
+sorted lists contain records, which keep track of the hits of the token per
+file.
 
 \section{Analysis}
 \subsection{Runtime Analysis}
-Given a token and a filename, adding or updating the appropriate record with the
-new number of hits takes, in the worst case, \verb/O(n)/ time, with \verb/n/
-being the total number of tokens found. This occurs when every word in the file
-begins with the same letter - as such, they all get hashed to the same sorted
-list, and the runtime degenerates to insertion into a linked list. In the more
-general case, runtime is still roughly linear due to sorted list insertion, but
-if the words are more spread apart, the actual runtime will be slightly faster.
+Insertion into the Trie takes \verb/O(n * m)/ time, with \verb/n/ being the
+total number of tokens found and \verb/m/ being the length of the longest 
+token. It takes \verb/n/ for each token, and the worst case of \verb/m/ to 
+traverse through the Trie and insert that single token.
 
-Dumping the inverted index to the file is rather costly; it runs in time linear
-in the number of tokens (that is, \verb/O(n)/). I rely on the buffering done by
-C file streams and hope that disk accesses aren't as frequent as my calls to
-\verb/fprintf()/. 
+Dumping has the same big-O of \verb/O(n * m)/ as it needs to traverse through
+the trie, which can have a maximum depth of \verb/m/.
 
 \subsection{Memory Usage}
-The most costly part of the entire program is probably the indexing of files. In
-order to use the tokenizer, I immediately open the entire file, dump its
-contents into an appropriately-sized buffer, and then tokenize that buffer. It
-would be more cache-friendly to read small chunks from the file stream and
-tokenize the smaller pieces instead. This operation trumps any of the filesystem
-accesses done during the directory walk in the recursive method
-\verb/index_dir()/.
+While using trie as the solution for this problem may have been elegant from a
+runtime standpoint, my implementation may not be the smartest in terms of memory
+usage. Each trie node assumes the max number of children nodes which is 36 for
+all lowercase alphanumeric characters (since tokens are only alphanumeric), so
+each node ends up having a lot of wasted, but still constant amount of space.
+The space complexity is still \verb/O(n)/ for each token, but there is still a
+large amount of wasted space.
 
-Data structure-wise, I tried to be as prudent as possible. For example, in the
-inverted index, there is space for 36 sorted lists. However, I only allocate
-space for a particular slot if it is needed. I also try to be prudent with the
-use of records; every time a known token is found in a known file, an existing
-record struct gets updated instead of creating a new one. Internally, however, I
-copy over tokens and filenames so that each record has its own copy for the sake
-of memory safety; this can be streamlined so that each record referring to the
-same token points to the same string (no calls to \verb/strcpy()/).
+I considered starting with a smaller child array but decided against that, as
+reallocing to extend it would be costlier on the speed.
 
 \end{document}

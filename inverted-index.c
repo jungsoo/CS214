@@ -66,7 +66,8 @@ void destroy_index(TrieIndex *index) {
 }
 
 int children_empty(TrieNode **children) {
-    for (int i = 0; i < 36; i++) {
+    int i;
+    for (i = 0; i < 36; i++) {
         if (children[i] != NULL) {
             return 0;
         }
@@ -82,7 +83,8 @@ void destroy_helper(TrieNode *node) {
         }
         return free(node);
     }
-    for (int i = 0; i < 36; i++) {
+    int i;
+    for (i = 0; i < 36; i++) {
         if (node->children[i]) {
             destroy_helper(node->children[i]);
         }

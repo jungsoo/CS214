@@ -160,7 +160,8 @@ void dump_helper(TrieNode *node, FILE *target) {
         destroy_iter(iterator);
     }
 
-    for (int i = 0; i < 36; i++) {
+    int i;
+    for (i = 0; i < 36; i++) {
         if (node->children[i]) {
             dump_helper(node->children[i], target);
         }
