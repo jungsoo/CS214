@@ -19,7 +19,7 @@ struct account {
     int is_active;
 };
 
-struct account *bank;
+struct account bank[20];
 
 void error(char *msg) {
     perror(msg);
@@ -96,8 +96,11 @@ int main() {
     printf("SERVER: Waiting for a connection...\n");
 
     // Memory-map bank info to file.
-    int bank_fd = open("bankdata", O_RDWR);
-    bank = mmap(0, 20*sizeof(struct account), PROT_READ | PROT_WRITE, MAP_SHARED, bank_fd, getpagesize());
+    int bank_fd = open("bankfile", O_RDWR);
+    bank = mmap(0, 20*sizeof(struct account), PROT_READ | PROT_WRITE, MAP_SHARED, bank_fd, 0);
+    bank[0].name = "jungsoo";
+    bank[0].balance = 123;
+    bank[0].is_active = 0;
 
     pid_t pid;
     socklen_t cli_len = sizeof(cli_addr);
