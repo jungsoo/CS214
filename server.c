@@ -13,13 +13,13 @@
 
 #define __SERVER_PORT__ 6694
 
-struct account {
+typedef struct account {
     char name[100];
     double balance;
     int is_active;
-};
+} account_t;
 
-struct account bank[20];
+account_t *bank;
 
 void error(char *msg) {
     perror(msg);
@@ -95,12 +95,26 @@ int main() {
     listen(listen_fd, 5);
     printf("SERVER: Waiting for a connection...\n");
 
-    // Memory-map bank info to file.
-    int bank_fd = open("bankfile", O_RDWR);
-    bank = mmap(0, 20*sizeof(struct account), PROT_READ | PROT_WRITE, MAP_SHARED, bank_fd, 0);
-    bank[0].name = "jungsoo";
-    bank[0].balance = 123;
-    bank[0].is_active = 0;
+    // Memory-mapping bank info to file...
+    int bank_fd = open("bankfile", O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
+    if (bank_fd == -1) {
+        close(bank_fd);
+        error("ERROR: Could not open file.");
+    }
+    if (lseek(bank_fd, 20*sizeof(account_t), SEEK_SET) == -1) {
+        close(bank_fd);
+        error("ERROR: Could not call lseek() to stretch file.");
+    }
+    if (write(bank_fd, "", 1) != 1) {
+        close(bank_fd);
+        error("ERROR: Could not write last byte of the file.");
+    }
+    bank = mmap(0, 20*sizeof(account_t), PROT_READ | PROT_WRITE, MAP_SHARED, bank_fd, 0);
+    if (bank == MAP_FAILED) {
+        close(bank_fd);
+        error("ERROR: Could not map to file.");
+    }
+    // End of memory-map code segment.
 
     pid_t pid;
     socklen_t cli_len = sizeof(cli_addr);
