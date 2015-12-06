@@ -1,0 +1,6 @@
+# Temporary Files
+*.sw[op]
+
+# Compiled Executables
+server
+client
