@@ -11,6 +11,10 @@
 #include <sys/mman.h>
 #include <netinet/in.h>
 
+#define FILEPATH        "/tmp/bankinfo.bin"
+#define MAX_ACCOUNT     (20)
+#define FILESIZE        (MAX_ACCOUNT * sizeof(account_t))
+
 #define __SERVER_PORT__ 6694
 
 typedef struct account {
@@ -19,6 +23,7 @@ typedef struct account {
     int is_active;
 } account_t;
 
+int bank_fd;
 account_t *bank;
 
 void error(char *msg) {
@@ -51,7 +56,10 @@ void set_timer(int seconds) {
 }
 
 void cleanup(int signum) {
-    munmap(bank, getpagesize());
+    if (munmap(bank, FILESIZE) == -1) {
+        error("ERROR: Unable to un-mmap the file.");
+    }
+    close(bank_fd);
     exit(0);
 }
 
@@ -96,12 +104,12 @@ int main() {
     printf("SERVER: Waiting for a connection...\n");
 
     // Memory-mapping bank info to file...
-    int bank_fd = open("bankfile", O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
+    bank_fd = open(FILEPATH, O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
     if (bank_fd == -1) {
         close(bank_fd);
         error("ERROR: Could not open file.");
     }
-    if (lseek(bank_fd, 20*sizeof(account_t), SEEK_SET) == -1) {
+    if (lseek(bank_fd, FILESIZE, SEEK_SET) == -1) {
         close(bank_fd);
         error("ERROR: Could not call lseek() to stretch file.");
     }
@@ -109,7 +117,7 @@ int main() {
         close(bank_fd);
         error("ERROR: Could not write last byte of the file.");
     }
-    bank = mmap(0, 20*sizeof(account_t), PROT_READ | PROT_WRITE, MAP_SHARED, bank_fd, 0);
+    bank = mmap(0, FILESIZE, PROT_READ | PROT_WRITE, MAP_SHARED, bank_fd, 0);
     if (bank == MAP_FAILED) {
         close(bank_fd);
         error("ERROR: Could not map to file.");
