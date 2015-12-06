@@ -7,20 +7,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-
-#define __SERVER_PORT__ 6694
+#include "util.h"
 
 int listen_fd;
-
-// Refactor this shit out.
-void error(const char *msg) {
-    perror(msg);
-    exit(1);
-}
-
-int streq(char *a, char *b) {
-    return strcmp(a, b) == 0;
-}
 
 void output_loop(char *server) {
     char output[2048];

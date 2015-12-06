@@ -10,14 +10,15 @@
 #include <sys/time.h>
 #include <sys/mman.h>
 #include <netinet/in.h>
+#include "util.h"
 
 #define FILEPATH        "/tmp/bankinfo.bin"
 #define MAX_ACCOUNT     (20)
 #define FILESIZE        (MAX_ACCOUNT * sizeof(account_t))
 
-#define __SERVER_PORT__ 6694
 
 typedef struct account {
+    pthread_mutex_t mutex;
     char name[100];
     double balance;
     int is_active;
@@ -26,17 +27,12 @@ typedef struct account {
 int bank_fd;
 account_t *bank;
 
-void error(char *msg) {
-    perror(msg);
-    exit(1);
-}
-
 void client_service(int sock) {
     char request[2048];
 
     memset(&request, '0', sizeof(request));
     while(read(sock, request, sizeof(request)) > 0) {
-        printf("CLIENT: %s\n", request);
+        printf("(%d): %s\n", getpid(), request);
     }
 
     close(sock);
@@ -60,6 +56,7 @@ void cleanup(int signum) {
         error("ERROR: Unable to un-mmap the file.");
     }
     close(bank_fd);
+    printf("\n");
     exit(0);
 }
 
@@ -128,8 +125,6 @@ int main() {
     socklen_t cli_len = sizeof(cli_addr);
     while (1) {
         connection_fd = accept(listen_fd, (struct sockaddr *) &cli_addr, &cli_len);
-        printf("SERVER: Connected to a new client!\n");
-
         if (connection_fd < 0) {
             error("ERROR: Unable to accept.");
         }
@@ -139,6 +134,7 @@ int main() {
             error("ERROR: fork() failed!");
         } else if (pid == 0) {
             close(listen_fd);
+            printf("SERVER: Connected to a new client (PID: %d)!\n", getpid());
             client_service(connection_fd);
             exit(0);
         } else {
