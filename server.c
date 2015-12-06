@@ -1,25 +1,28 @@
+#include <fcntl.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <sys/time.h>
 #include <sys/mman.h>
-#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include "util.h"
 #include "tokenizer.h"
 
 #define FILEPATH        "/tmp/bankinfo.bin"
 #define MAX_ACCOUNT     (20)
+#define MAX_NAME_LEN    (100)
 #define FILESIZE        (MAX_ACCOUNT * sizeof(account_t))
 
 typedef struct account {
     pthread_mutex_t mutex;
-    char name[100];
+    char name[MAX_NAME_LEN];
     double balance;
     int is_active;
 } account_t;
@@ -33,13 +36,13 @@ account_t *bank;
 pthread_mutex_t accounts_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-void open_account(char *accountname) {
+int open_account(char *accountname) {
     for (int i = 0; i < MAX_ACCOUNT; i++) { 
         if (streq(bank[i].name, accountname)) {
             return -2; // Account name already exists.
         }
         if (bank[i].name == NULL) {
-            bank[i].name = accountname;
+            strncpy(bank[i].name, accountname, MAX_NAME_LEN);
             bank[i].balance = 0;
             bank[i].is_active = 0;
 
@@ -64,7 +67,7 @@ void client_service(int sock) {
     char *cmd;
     char *accountname;
 
-    memset(&request, '0', sizeof(request));
+    memset(&request, '\0', sizeof(request));
 
     while(read(sock, request, sizeof(request)) > 0) {
         printf("(%d): %s\n", getpid(), request);
@@ -233,7 +236,7 @@ int main() {
     }
     
     struct sockaddr_in serv_addr, cli_addr;
-    memset(&serv_addr, '0', sizeof(serv_addr));
+    memset(&serv_addr, '\0', sizeof(serv_addr));
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
