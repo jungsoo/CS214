@@ -8,8 +8,6 @@
 
 #define __SERVER_PORT__ 6694
 
-
-
 void error(char *msg) {
     perror(msg);
     exit(1);
