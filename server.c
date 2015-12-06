@@ -1,12 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/mman.h>
 #include <netinet/in.h>
 
 #define __SERVER_PORT__ 6694
+
+struct account {
+    char name[100];
+    double balance;
+    int is_active;
+};
+
+struct account *bank;
 
 void error(char *msg) {
     perror(msg);
@@ -24,6 +37,24 @@ void client_service(int sock) {
     close(sock);
 }
 
+void print_bank_info(int signum) {
+    // TODO
+}
+
+void set_timer(int seconds) {
+    struct itimerval timer;
+    timer.it_value.tv_sec = seconds;
+    timer.it_value.tv_usec = 0;
+    timer.it_interval.tv_sec = seconds;
+    timer.it_interval.tv_usec = 0;
+    setitimer(ITIMER_REAL, &timer, NULL);
+}
+
+void cleanup(int signum) {
+    munmap(bank, getpagesize());
+    exit(0);
+}
+
 int main() {
     int listen_fd = socket(AF_INET, SOCK_STREAM, 0), connection_fd;
     if (listen_fd < 0) {
@@ -37,11 +68,36 @@ int main() {
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     serv_addr.sin_port = htons(__SERVER_PORT__);
 
+    // Display server information every 20 seconds.
+    /*
+    struct sigaction timer;
+    sigemptyset(&timer.sa_mask);
+    timer.sa_flags = 0;
+    timer.sa_handler = print_bank_info;
+    sigaction(SIGALRM, &timer, NULL);
+
+    set_timer(20);
+    */
+
+    // Server exit handler
+    /* Do we really need sigaction?
+    struct sigaction quit;
+    sigemptyset(&quit.sa_mask);
+    quit.sa_flags = 0;
+    quit.sa_handler = cleanup;
+    sigaction(SIGINT, &quit, NULL);
+    */
+    signal(SIGINT, cleanup);
+
     if (bind(listen_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr))) {
         error("ERROR: Unable to bind address/port.");
     }
     listen(listen_fd, 5);
     printf("SERVER: Waiting for a connection...\n");
+
+    // Memory-map bank info to file.
+    int bank_fd = open("bankdata", O_RDWR);
+    bank = mmap(0, 20*sizeof(struct account), PROT_READ | PROT_WRITE, MAP_SHARED, bank_fd, getpagesize());
 
     pid_t pid;
     socklen_t cli_len = sizeof(cli_addr);
@@ -64,6 +120,7 @@ int main() {
             close(connection_fd);
         }
     }
+
     close(listen_fd);
     return 0;
 }
