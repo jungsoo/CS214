@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <pthread.h>
@@ -200,22 +201,17 @@ void print_account_info(int acc_index) {
 }
 
 void print_bank_info(int signum) {
-    if (pthread_mutex_trylock(&accounts_mutex) == 0) {
-        printf("--- BANK OF JUNGSOO ---\n\n");
-        for (int i = 0; i < MAX_ACCOUNT; i++) {
-            if (!streq(bank[i].name, "")) {
-                print_account_info(i);
-                continue;
-            }
-            if (i == 0) {
-                printf("...Bank is empty. :(\n\n");
-            }
+    printf("--- BANK OF JUNGSOO ---\n\n");
+    for (int i = 0; i < MAX_ACCOUNT; i++) {
+        if (!streq(bank[i].name, "")) {
+            print_account_info(i);
+            continue;
         }
-        printf("--------- END ---------\n\n");
-        pthread_mutex_unlock(&accounts_mutex);
-    } else {
-        printf("Unable to acquire mutex lock to print stats.\n");
+        if (i == 0) {
+            printf("...Bank is empty. :(\n\n");
+        }
     }
+    printf("--------- END ---------\n\n");
 }
 
 void set_timer(int seconds) {
@@ -300,7 +296,12 @@ int main() {
     while (1) {
         connection_fd = accept(listen_fd, (struct sockaddr *) &cli_addr, &cli_len);
         if (connection_fd < 0) {
-            error("ERROR: Unable to accept.");
+            if (errno == EINTR) {
+                // Ignore signals, like the alarm signal, as they are not errors.
+                continue;
+            } else {
+                error("ERROR: Unable to accept.");
+            }
         }
         
         pid = fork();
