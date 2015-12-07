@@ -62,24 +62,30 @@ void client_service(int sock) {
     char request[2048];
     int in_customer_session = 0; // Each client starts off out of customer session.
     int account_index = -1; // Not associated with any account.
-    Tokenizer tokenizer;
     int result;
 
-    char *cmd;
-    char *arg;
+    char *cmd = (char *)malloc(2048);
+    char *arg = (char *)malloc(2048);
     double amount;
 
     memset(&request, '\0', sizeof(request));
 
     while(read(sock, request, sizeof(request)) > 0) {
         printf("(%d): %s\n", getpid(), request);
+        
+        *cmd = NULL;
+        *arg = NULL;
 
-        tokenizer = createTokenizer(request);
+        sscanf(request, "%s %s", cmd, arg);
+        printf("CMD: %s\nARG: %s\n", cmd, arg);
 
-        cmd = getNextToken(tokenizer);
-		if (streq(cmd, "open")) {
-			if (!(arg = getNextToken(tokenizer)) || getNextToken(tokenizer)) {
+        if (!cmd) {
+            write(sock, request, sprintf(request, "\tBANK: Invalid syntax.\n") + 1);
+            continue;
+        } else if (streq(cmd, "open")) {
+			if (!arg) {
 				write(sock, request, sprintf(request, "\tBANK: Invalid syntax.\n") + 1);
+                continue;
 			}
             pthread_mutex_lock(&accounts_mutex);
             result = open_account(arg);
@@ -93,8 +99,9 @@ void client_service(int sock) {
             pthread_mutex_unlock(&accounts_mutex);
 
 		} else if (streq(cmd, "start")) {
-			if (!(arg = getNextToken(tokenizer)) || getNextToken(tokenizer)) {
+			if (!arg) {
 				write(sock, request, sprintf(request, "\tBANK: Invalid syntax.\n") + 1);
+                continue;
 			} else if (in_customer_session) {
 				write(sock, request, sprintf(request, "\tBANK: Already serving account %s.\n", arg) + 1);
 			} 
@@ -130,9 +137,10 @@ void client_service(int sock) {
 		} else if (streq(cmd, "credit")) {
             if (!in_customer_session) {
 				write(sock, request, sprintf(request, "\tBANK: Not currently in a customer session.\n") + 1);
-            } else if (!(arg = getNextToken(tokenizer)) || getNextToken(tokenizer)) 			{
+            } else if (!arg) {
 				write(sock, request, sprintf(request, "\tBANK: Invalid syntax.\n") + 1);
-			} else if (!(amount = atof(arg)) || amount <= 0) {
+                continue;
+			} else if (!(amount = atof(arg)) || (bank[account_index].balance + amount) < 0) {
 				write(sock, request, sprintf(request, "\tBANK: Not a valid deposit.\n") + 1);
 			} else {
 				write(sock, request, sprintf(request, "\tBANK:\n\t\tOld Balance:\t$%.2lf\n\t\tDepositing:\t$%.2lf\n\t\tNew Balance:\t$%.2lf\n", bank[account_index].balance, amount, (bank[account_index].balance + amount)) + 1);
@@ -142,9 +150,10 @@ void client_service(int sock) {
 		} else if (streq(cmd, "debit")) {
             if (!in_customer_session) {
 				write(sock, request, sprintf(request, "\tBANK: Not currently in a customer session.\n") + 1);
-            } else if (!(arg = getNextToken(tokenizer)) || getNextToken(tokenizer)) {
+            } else if (!arg) {
 				write(sock, request, sprintf(request, "\tBANK: Invalid syntax.\n") + 1);
-			} else if (!(amount = atof(arg)) || amount <= 0 || (bank[account_index].balance - amount) < 0) {
+                continue;
+			} else if (!(amount = atof(arg)) || (bank[account_index].balance - amount) < 0) {
 				write(sock, request, sprintf(request, "\tBANK: Not a valid withdrawal.\n") + 1);
 			} else {
 				write(sock, request, sprintf(request, "\tBANK:\n\tOld Balance:\t$%.2lf\n\tWithdrawing:\t$%.2lf\n\tNew Balance:\t$%.2lf\n", bank[account_index].balance, amount, (bank[account_index].balance - amount)) + 1);
@@ -154,8 +163,9 @@ void client_service(int sock) {
 		} else if (streq(cmd, "balance")) {
 			if (!in_customer_session) {
 				write(sock, request, sprintf(request, "\tBANK: Not currently in a customer session.\n") + 1);
-            } else if (getNextToken(tokenizer)) {
+            } else if (arg) {
 				write(sock, request, sprintf(request, "\tBANK: Invalid syntax.\n") + 1);
+                continue;
 			} else {
 				write(sock, request, sprintf(request, "\tBANK:\n\tBalance: $%.2lf\n", bank[account_index].balance) + 1);
 			}
@@ -172,21 +182,17 @@ void client_service(int sock) {
 				printf("\tBANK: Ended customer session and unlocked account mutex.\n");
 			}
 		} else if (streq(cmd, "exit")) {
-			write(sock, request, sprintf(request, "\tBANK: disconnecting from server and ending client process.\n") + 1);
 
-            if (account_index >= 0) {
+            if (in_customer_session) {
                 bank[account_index].is_active = 0;
                 pthread_mutex_unlock(&bank[account_index].mutex);
             }
 
-			destroyTokenizer(tokenizer);
-
+			write(sock, request, sprintf(request, "\tBANK: Disconnecting from server and ending client process.\n") + 1);
 			break; // End client-service process.
 		} else {
 			write(sock, request, sprintf(request, "Invalid syntax. Proper commands:\nopen <account_name> \tcreates an account\nstart <account_name>\tstarts a customer session\ncredit <amount>\t\tdebit amount into account\nwithdraw <amount>\twithdraws amount from account\nbalance\t\t\tprints account balance\nfinish\t\t\tends customer session\nexit\t\t\tends client session\n") + 1);
 		}
-
-		destroyTokenizer(tokenizer);
     }
 
     close(sock);
