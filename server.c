@@ -39,8 +39,7 @@ int open_account(char *accountname) {
     for (int i = 0; i < MAX_ACCOUNT; i++) { 
         if (streq(bank[i].name, accountname)) {
             return -1; // Account name already exists.
-        }
-        if (bank[i].name == NULL) {
+        } else if (streq("", bank[i].name)) {
             strncpy(bank[i].name, accountname, MAX_NAME_LEN);
             bank[i].balance = 0;
             bank[i].is_active = 0;
@@ -143,9 +142,9 @@ void client_service(int sock) {
             } else if (!(arg = getNextToken(tokenizer)) || getNextToken(tokenizer)) 			{
 				write(sock, request, sprintf(request, "\tBANK: Invalid syntax.\n") + 1);
 			} else if (!(amount = atof(arg)) || amount <= 0 || (bank[account_index].balance - amount) < 0) {
-				write(sock, request, sprintf(request, "\tBANK: Not a valid deposit.\n") + 1);
+				write(sock, request, sprintf(request, "\tBANK: Not a valid withdrawal.\n") + 1);
 			} else {
-				write(sock, request, sprintf(request, "\tBANK:\n\tOld Balance:\t$%.2lf\n\tDepositing:\t$%.2lf\n\tNew Balance:\t$%.2lf\n", bank[account_index].balance, amount, (bank[account_index].balance - amount)) + 1);
+				write(sock, request, sprintf(request, "\tBANK:\n\tOld Balance:\t$%.2lf\n\tWithdrawing:\t$%.2lf\n\tNew Balance:\t$%.2lf\n", bank[account_index].balance, amount, (bank[account_index].balance - amount)) + 1);
 				bank[account_index].balance -= amount;
 			}
 
