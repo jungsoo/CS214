@@ -182,7 +182,7 @@ void client_service(int sock) {
 
 			break; // End client-service process.
 		} else {
-			write(sock, request, sprintf(request, "Invalid syntax. Proper commands:\ncreate <account_name> \tcreates an account\nserve <account_name>\tstarts a customer session\ndeposit <amount>\tdeposits amount into account\nwithdraw <amount>\twithdraws amount from account\nquery\t\t\tprints account balance\nend\t\t\tends customer session\nquit\t\t\tends client session\n") + 1);
+			write(sock, request, sprintf(request, "Invalid syntax. Proper commands:\nopen <account_name> \tcreates an account\nstart <account_name>\tstarts a customer session\ncredit <amount>\tdebit amount into account\nwithdraw <amount>\twithdraws amount from account\nbalance\t\t\tprints account balance\nfinish\t\t\tends customer session\nexit\t\t\tends client session\n") + 1);
 		}
 
 		destroyTokenizer(tokenizer);
