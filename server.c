@@ -110,6 +110,7 @@ void client_service(int sock) {
             if (account_index >= MAX_ACCOUNT) {
                 account_index = -1;
 				write(sock, request, sprintf(request, "\tBANK: Account %s does not exist.\n", arg) + 1);
+                continue;
             } else if (bank[account_index].is_active) {
 				write(sock, request, sprintf(request, "\tBANK: Account %s is already in use.\n", arg) + 1);
 
@@ -195,7 +196,7 @@ void print_account_info(int acc_index) {
     printf("\tAccount Name: %s\n", bank[acc_index].name);
     printf("\tBalance: $%.2lf\n", bank[acc_index].balance);
     if (bank[acc_index].is_active) {
-        printf("\n\tIN SESSION\n");
+        printf("\tIN SESSION\n");
     }
     printf("\n");
 }
