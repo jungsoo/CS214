@@ -200,19 +200,22 @@ void print_account_info(int acc_index) {
 }
 
 void print_bank_info(int signum) {
-    pthread_mutex_lock(&accounts_mutex);
-    printf("--- BANK OF JUNGSOO ---\n\n");
-    for (int i = 0; i < MAX_ACCOUNT; i++) {
-        if (!streq(bank[i].name, "")) {
-            print_account_info(i);
-            continue;
+    if (pthread_mutex_trylock(&accounts_mutex) == 0) {
+        printf("--- BANK OF JUNGSOO ---\n\n");
+        for (int i = 0; i < MAX_ACCOUNT; i++) {
+            if (!streq(bank[i].name, "")) {
+                print_account_info(i);
+                continue;
+            }
+            if (i == 0) {
+                printf("...Bank is empty. :(\n\n");
+            }
         }
-        if (i == 0) {
-            printf("...Bank is empty. :(\n\n");
-        }
+        printf("--------- END ---------\n\n");
+        pthread_mutex_unlock(&accounts_mutex);
+    } else {
+        printf("Unable to acquire mutex lock to print stats.\n");
     }
-    printf("--------- END ---------\n\n");
-    pthread_mutex_unlock(&accounts_mutex);
 }
 
 void set_timer(int seconds) {
