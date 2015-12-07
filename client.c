@@ -29,11 +29,13 @@ void input_loop() {
         scanf(" %[^\n]", input);
         write(listen_fd, input, strlen(input) + 1);
 
+        /*
         if (streq(input, "exit")) {
             printf("CLIENT: Exiting.\n");
             kill(getppid(), SIGINT);
             exit(0);
         }
+        */
         sleep(2);
     }
 }
