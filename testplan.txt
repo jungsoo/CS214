@@ -1,0 +1,29 @@
+Testplan - Multiprocessing Bank Server
+    >> Jungsoo Park
+
+
+Interesting test cases that stress the synchronous/multiprocessing nature of the server:
+
+    1. Opening and starting an account from one client, then attempting to start
+    the same account from another client. 
+    >> This should keep the second client waiting until the first one finishes.
+
+    2. One client opening a new account while another is credit/debiting to an
+    account.
+    >> Whichever client gets their respective lock first will be able to perform
+    >> that action, while the other client will simply print out a message
+    >> saying that it failed to lock their respective mutex.
+
+
+Other test cases:
+
+    3. Attempting to open more than 20 accounts.
+    >> Will result in an error message.
+
+    4. Debiting more than existing in the account.
+    >> Will result in an error message.
+
+    5. Starting a client without the server running.
+    >> Will result in the client continuing to attempt every 3 seconds with an
+    >> error message until the server becomes available.
+
