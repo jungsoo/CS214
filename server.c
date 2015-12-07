@@ -122,6 +122,7 @@ void client_service(int sock) {
             
             in_customer_session = 1;
 			bank[account_index].is_active = 1;
+            pthread_mutex_lock(&bank[account_index].mutex);
 			write(sock, request, sprintf(request, "\tBANK: Successfully connected to account %s.\n", arg) + 1);
 
 		} else if (streq(cmd, "credit")) {
@@ -139,7 +140,7 @@ void client_service(int sock) {
 		} else if (streq(cmd, "debit")) {
             if (!in_customer_session) {
 				write(sock, request, sprintf(request, "\tBANK: Not currently in a customer session.\n") + 1);
-            } else if (!(arg = getNextToken(tokenizer)) || getNextToken(tokenizer)) 			{
+            } else if (!(arg = getNextToken(tokenizer)) || getNextToken(tokenizer)) {
 				write(sock, request, sprintf(request, "\tBANK: Invalid syntax.\n") + 1);
 			} else if (!(amount = atof(arg)) || amount <= 0 || (bank[account_index].balance - amount) < 0) {
 				write(sock, request, sprintf(request, "\tBANK: Not a valid withdrawal.\n") + 1);
@@ -171,12 +172,11 @@ void client_service(int sock) {
 		} else if (streq(cmd, "exit")) {
 			write(sock, request, sprintf(request, "\tBANK: disconnecting from server and ending client process.\n") + 1);
 
-            if (account_index > 0) {
+            if (account_index >= 0) {
                 bank[account_index].is_active = 0;
                 pthread_mutex_unlock(&bank[account_index].mutex);
             }
 
-			close(sock);
 			destroyTokenizer(tokenizer);
 
 			break; // End client-service process.
