@@ -14,16 +14,26 @@ Interesting test cases that stress the synchronous/multiprocessing nature of the
     >> that action, while the other client will simply print out a message
     >> saying that it failed to lock their respective mutex.
 
+    3. Two or more servers attempting to start on the same host.
+    >> The first server will succeed, but any subsequent server start will fail,
+    >> saying that the port is in use.
+
 
 Other test cases:
 
-    3. Attempting to open more than 20 accounts.
+    4. Attempting to open more than 20 accounts.
     >> Will result in an error message.
 
-    4. Debiting more than existing in the account.
+    5. Debiting more than existing in the account.
     >> Will result in an error message.
 
-    5. Starting a client without the server running.
+    6. Starting a client without the server running.
     >> Will result in the client continuing to attempt every 3 seconds with an
     >> error message until the server becomes available.
 
+    7. Opening an account that already exists.
+    >> The server will refuse and indicate that the account already is in
+    >> existence.
+
+    8. Starting an account that has not been opened.
+    >> The server sends an appropriate error message to the client.
