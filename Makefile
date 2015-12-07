@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -g -pthread
+CFLAGS=-Wall -g -std=gnu99 -pthread
 
 all: server client
 
