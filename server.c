@@ -72,16 +72,16 @@ void client_service(int sock) {
     while(read(sock, request, sizeof(request)) > 0) {
         printf("(%d): %s\n", getpid(), request);
         
-        *cmd = NULL;
-        *arg = NULL;
+        *cmd = '\0';
+        *arg = '\0';
 
         sscanf(request, "%s %s", cmd, arg);
 
-        if (!cmd) {
+        if (!cmd || !strlen(cmd)) {
             write(sock, request, sprintf(request, "\tBANK: Invalid syntax.\n") + 1);
             continue;
         } else if (streq(cmd, "open")) {
-			if (!arg) {
+			if (!arg || !strlen(arg)) {
 				write(sock, request, sprintf(request, "\tBANK: Invalid syntax.\n") + 1);
                 continue;
 			}
@@ -97,7 +97,7 @@ void client_service(int sock) {
             pthread_mutex_unlock(&accounts_mutex);
 
 		} else if (streq(cmd, "start")) {
-			if (!arg) {
+			if (!arg || !strlen(arg)) {
 				write(sock, request, sprintf(request, "\tBANK: Invalid syntax.\n") + 1);
                 continue;
 			} else if (in_customer_session) {
@@ -135,7 +135,7 @@ void client_service(int sock) {
 		} else if (streq(cmd, "credit")) {
             if (!in_customer_session) {
 				write(sock, request, sprintf(request, "\tBANK: Not currently in a customer session.\n") + 1);
-            } else if (!arg) {
+            } else if (!arg || !strlen(arg)) {
 				write(sock, request, sprintf(request, "\tBANK: Invalid syntax.\n") + 1);
                 continue;
 			} else if (!(amount = atof(arg)) || (bank[account_index].balance + amount) < 0) {
@@ -148,7 +148,7 @@ void client_service(int sock) {
 		} else if (streq(cmd, "debit")) {
             if (!in_customer_session) {
 				write(sock, request, sprintf(request, "\tBANK: Not currently in a customer session.\n") + 1);
-            } else if (!arg) {
+            } else if (!arg || !strlen(arg)) {
 				write(sock, request, sprintf(request, "\tBANK: Invalid syntax.\n") + 1);
                 continue;
 			} else if (!(amount = atof(arg)) || (bank[account_index].balance - amount) < 0) {
@@ -161,7 +161,7 @@ void client_service(int sock) {
 		} else if (streq(cmd, "balance")) {
 			if (!in_customer_session) {
 				write(sock, request, sprintf(request, "\tBANK: Not currently in a customer session.\n") + 1);
-            } else if (arg) {
+            } else if (arg && strlen(arg)) {
 				write(sock, request, sprintf(request, "\tBANK: Invalid syntax.\n") + 1);
                 continue;
 			} else {
