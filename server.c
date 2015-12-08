@@ -14,7 +14,6 @@
 #include <unistd.h>
 
 #include "util.h"
-#include "tokenizer.h"
 
 #define FILEPATH        "/tmp/bankinfo.bin"
 #define MAX_ACCOUNT     (20)
