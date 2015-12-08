@@ -77,7 +77,6 @@ void client_service(int sock) {
         *arg = NULL;
 
         sscanf(request, "%s %s", cmd, arg);
-        printf("CMD: %s\nARG: %s\n", cmd, arg);
 
         if (!cmd) {
             write(sock, request, sprintf(request, "\tBANK: Invalid syntax.\n") + 1);
@@ -194,6 +193,9 @@ void client_service(int sock) {
 			write(sock, request, sprintf(request, "Invalid syntax. Proper commands:\nopen <account_name> \tcreates an account\nstart <account_name>\tstarts a customer session\ncredit <amount>\t\tdebit amount into account\nwithdraw <amount>\twithdraws amount from account\nbalance\t\t\tprints account balance\nfinish\t\t\tends customer session\nexit\t\t\tends client session\n") + 1);
 		}
     }
+    
+    free(cmd);
+    free(arg);
 
     close(sock);
 }
