@@ -189,7 +189,7 @@ void client_service(int sock) {
 			write(sock, request, sprintf(request, "\tBANK: Disconnecting from server and ending client process.\n") + 1);
 			break; // End client-service process.
 		} else {
-			write(sock, request, sprintf(request, "Invalid syntax. Proper commands:\nopen <account_name> \tcreates an account\nstart <account_name>\tstarts a customer session\ncredit <amount>\t\tdebit amount into account\ndebit <amount>\twithdraws amount from account\nbalance\t\t\tprints account balance\nfinish\t\t\tends customer session\nexit\t\t\tends client session\n") + 1);
+			write(sock, request, sprintf(request, "Invalid syntax. Proper commands:\nopen <account_name> \tcreates an account\nstart <account_name>\tstarts a customer session\ncredit <amount>\t\tdebit amount into account\ndebit <amount>\t\twithdraws amount from account\nbalance\t\t\tprints account balance\nfinish\t\t\tends customer session\nexit\t\t\tends client session\n") + 1);
 		}
     }
     
