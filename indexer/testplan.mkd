@@ -1,0 +1,38 @@
+Tests
+=====
+Test plan for Systems Assignment 4.
+
+Overview
+--------
+As I tested the code, I tried it on a variety of different file formats to make
+sure only valid tokens (and no garbage) gets added to the index:
+- plaintext
+- PDF files
+- executable files
+
+I also tested for strange inputs:
+- invalid invocation / wrong number of arguments
+- help invocation with `-h` or `--help`
+- indexing something not in the current folder - this executable can handle both
+  relative and absolute pathnames
+- writing to a target file that already exists (It will ask whether you want to
+        overwrite the file)
+- indexing a file that doesn't exist or is not a regular file
+- graceful exit when the target index file and the file to be indexed are the
+  same
+- index special file names (for example, index the current directory with `.`)
+
+Examples
+--------
+The project directory can serve as the test case. It contains various different
+edge cases such as different file formats (pdf, compiled code) so that the
+tokenizer has to sort through invalid tokens.
+
+The text file `controller.c` has been indexed into `controller.index`.
+
+The directory `.` (i.e. the current, project directory) has been indexed into 
+`proj.index`.
+
+The directory `pets` has been indexed to pets.index.
+
+The executable `index` has been indexed to `executable.index`.

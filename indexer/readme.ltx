@@ -1,0 +1,65 @@
+\documentclass{report}
+\begin{document}
+\title{Project 4 - Indexer}
+\author{Jungsoo Park\\
+    \texttt{jungsoo.park@rutgers.edu}}
+\date{\today}
+\maketitle
+
+\section{Overview}
+The central data structure to this inverted index is a Trie. Tokens from each
+file in the directory are passed from the tokenizer and into the inverted index
+and inserted into the trie to maintain lexicographical order of each token. Trie
+nodes then contain a sorted list, which is a linked list ordered by the
+lexicographical order of the file names.
+
+After the trie is built, it is accessed in dump() which prints out the contents
+of the trie in a JSON format. Its traversal method is pre-order, which allows
+for the trie to be printed in lexicographical order of its tokens.
+
+\subsection{Project Structure}
+This program is divided up into indexer.c, controller.c, tokenizer.c,
+inverted-index.c, sorted-list.c, and record.c.
+
+The indexer.c is the main() of the entire program. This is the highest level of
+the code, where I/O with the user is handled. The the files and directories are
+accessed here and are passed into the controller.
+
+controller.c is the main connecting glue for the entire program. It allows for
+the program to be modular. For example, inverted-index.c connects here meaning a
+different implementation of the data structure can be used here. controller.c
+also contains dump, which traverses through the data structure in
+inverted-index.c and spits out the JSON file.
+
+tokenizer.c simply takes the contents of a file and acts as a scanner tokenizing
+the file into the desired input.
+
+inverted-index.c is our data structure, which is a trie in this case.
+
+sorted-list.c is the list of records (record.c) kept by nodes of the trie. The
+sorted lists contain records, which keep track of the hits of the token per
+file.
+
+\section{Analysis}
+\subsection{Runtime Analysis}
+Insertion into the Trie takes \verb/O(n * m)/ time, with \verb/n/ being the
+total number of tokens found and \verb/m/ being the length of the longest 
+token. It takes \verb/n/ for each token, and the worst case of \verb/m/ to 
+traverse through the Trie and insert that single token.
+
+Dumping has the same big-O of \verb/O(n * m)/ as it needs to traverse through
+the trie, which can have a maximum depth of \verb/m/.
+
+\subsection{Memory Usage}
+While using trie as the solution for this problem may have been elegant from a
+runtime standpoint, my implementation may not be the smartest in terms of memory
+usage. Each trie node assumes the max number of children nodes which is 36 for
+all lowercase alphanumeric characters (since tokens are only alphanumeric), so
+each node ends up having a lot of wasted, but still constant amount of space.
+The space complexity is still \verb/O(n)/ for each token, but there is still a
+large amount of wasted space.
+
+I considered starting with a smaller child array but decided against that, as
+reallocing to extend it would be costlier on the speed.
+
+\end{document}
